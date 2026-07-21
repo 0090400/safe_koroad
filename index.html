@@ -66,19 +66,16 @@
             <div class="flex items-center justify-between text-xs text-slate-400">
                 <span class="flex items-center gap-1.5 font-medium text-slate-300">📍 탐지 위치 및 기상청 격자</span>
                 <div class="flex items-center gap-2 font-mono text-[11px]">
-                    <span id="coord-display" class="text-slate-500">36.31, 127.46</span>
-                    <span id="kma-grid-display" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-bold">KMA (nx: 67, ny: 100)</span>
+                    <span id="coord-display" class="text-slate-500">-.-, -.-</span>
+                    <span id="kma-grid-display" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-bold">KMA (nx: -, ny: -)</span>
                 </div>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <h2 id="current-address" class="text-base md:text-lg font-bold text-white tracking-tight">
-                        대전 운전면허시험장 (동구)
+                        GPS 위치 탐색 중...
                     </h2>
-                    <span id="data-source-tag" onclick="toggleApiKeyModal()" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">
-                        ✅ 기상청 실시간 API 수신 성공
-                    </span>
                 </div>
                 <span class="text-[10px] sm:text-xs bg-sky-500/10 text-sky-400 border border-sky-500/20 px-2.5 py-1 rounded-full flex items-center gap-1 font-medium w-fit">
                     🇰🇷 대한민국 기상청 공공데이터포털 연동
@@ -335,17 +332,17 @@
         };
 
         let currentWeatherData = {
-            sensibleTemp: 25.9,
-            temp: 25.9,
-            humidity: 98,
-            wind: 0.9,
-            pm10: 18,
-            pm25: 9,
-            uv: 4.2,
+            sensibleTemp: 0.0,
+            temp: 0.0,
+            humidity: 0,
+            wind: 0.0,
+            pm10: 0,
+            pm25: 0,
+            uv: 0.0,
             isSummer: true,
-            locationName: "GPS 위치 탐지 중...",
-            nx: 67,
-            ny: 100
+            locationName: "위치 미지정",
+            nx: 0,
+            ny: 0
         };
 
         let kmaServiceKey = localStorage.getItem('kma_service_key') || '7a1d7d5d215ad5941cf07d2b762ec16932e2a2f61c1c77aff132001876e827d5';
@@ -394,24 +391,12 @@
         }
 
         function updateDataSourceStatus(isReal) {
-            const tag = document.getElementById('data-source-tag');
-            if (!tag) return;
-            if (isReal) {
-                tag.innerHTML = '✅ 기상청 실시간 API 수신 성공';
-                tag.className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold';
-                tag.onclick = null;
-                tag.classList.remove('cursor-pointer', 'animate-pulse', 'hover:bg-rose-500/30');
-            } else {
-                tag.innerHTML = '⚠️ API 미연결 (기본 데이터)';
-                tag.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 cursor-pointer font-bold transition-all hover:bg-rose-500/30 animate-pulse';
-                tag.onclick = toggleApiKeyModal;
-            }
+            // 태그 삭제로 인한 빈 함수 처리
         }
 
         window.onload = function() {
             if (kmaServiceKey) document.getElementById('input-kma-key').value = kmaServiceKey;
             updateSeasonAndFormulaDisplay();
-            // 페이지 접속 시 GPS 탐색을 기본으로 하거나 초기화 상태 유지
             requestLocation();
         };
 
@@ -450,14 +435,17 @@
             
             if (gpsTimeoutTimer) clearTimeout(gpsTimeoutTimer);
 
-            // 5초 동안 GPS 응답이 없을 경우 핸들러 (안내 유도)
+            // 5초 동안 GPS 응답이 없을 경우 드롭박스 선택 안내 유도
             gpsTimeoutTimer = setTimeout(() => {
-                showToast("⚠️ GPS 연결이 지연되어 직접 권역을 선택해주세요.", true);
+                showToast("⚠️ GPS 수신 실패: 드롭박스에서 지역을 선택해주세요.", true);
+                document.getElementById('current-address').textContent = "드롭박스에서 지역을 선택해주세요";
+                document.getElementById('coord-display').textContent = "직접 선택 필요";
             }, 5000);
 
             if (!navigator.geolocation) {
                 clearTimeout(gpsTimeoutTimer);
                 showToast("이 브라우저는 위치 정보를 지원하지 않습니다. 지역을 선택해주세요.", true);
+                document.getElementById('current-address').textContent = "드롭박스에서 지역을 선택해주세요";
                 return;
             }
 
@@ -472,7 +460,8 @@
                 },
                 (error) => {
                     clearTimeout(gpsTimeoutTimer);
-                    showToast("⚠️ GPS 권한이 거부되었거나 연결할 수 없습니다. 상단에서 직접 권역을 선택해주세요.", true);
+                    showToast("⚠️ GPS 권한이 거부되었거나 연결할 수 없습니다. 드롭박스에서 직접 권역을 선택해주세요.", true);
+                    document.getElementById('current-address').textContent = "드롭박스에서 지역을 선택해주세요";
                 },
                 { timeout: 5000, enableHighAccuracy: true }
             );
@@ -593,16 +582,14 @@
             const dialCircle = document.getElementById('dial-circle-fill');
             const adviceText = document.getElementById('ai-advice-text');
 
-            if (finalSensible < 31) {
-                badgeText.textContent = "안전";
-                badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
-                badge.className = "mt-1 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1";
-                barFill.className = "h-full rounded-full bg-emerald-500 gradient-bar transition-all duration-700 ease-out";
-                barFill.style.width = "25%";
-                dialCircle.className = "text-emerald-500 transition-all duration-1000 ease-out";
-                dialCircle.style.strokeDashoffset = "198";
-                adviceText.innerHTML = `기상청 공식 산식 기준 체감온도는 <strong class="text-emerald-400">${finalSensible}°C</strong>입니다. 현재 안전 단계입니다.`;
-            }
+            badgeText.textContent = "안전";
+            badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
+            badge.className = "mt-1 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1";
+            barFill.className = "h-full rounded-full bg-emerald-500 gradient-bar transition-all duration-700 ease-out";
+            barFill.style.width = "25%";
+            dialCircle.className = "text-emerald-500 transition-all duration-1000 ease-out";
+            dialCircle.style.strokeDashoffset = "198";
+            adviceText.innerHTML = `기상청 공식 산식 기준 체감온도는 <strong class="text-emerald-400">${finalSensible}°C</strong>입니다. 현재 안전 단계입니다.`;
         }
 
         function toggleAudioBriefing() {
