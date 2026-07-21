@@ -347,7 +347,7 @@
             pm25: 9,
             uv: 4.2,
             isSummer: true,
-            locationName: "대전 운전면허시험장 (동구)",
+            locationName: "GPS 위치 탐지 중...",
             nx: 67,
             ny: 100
         };
@@ -355,6 +355,7 @@
         let kmaServiceKey = localStorage.getItem('kma_service_key') || '7a1d7d5d215ad5941cf07d2b762ec16932e2a2f61c1c77aff132001876e827d5';
         let speechUtterance = null;
         let isSpeaking = false;
+        let gpsTimeoutTimer = null;
 
         function dfs_xy_conv(code, v1, v2) {
             const RE = 6371.00877;
@@ -414,7 +415,7 @@
         window.onload = function() {
             if (kmaServiceKey) document.getElementById('input-kma-key').value = kmaServiceKey;
             updateSeasonAndFormulaDisplay();
-            updateUI();
+            requestLocation();
         };
 
         function showToast(msg, isError = false) {
@@ -426,7 +427,7 @@
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 4000);
         }
 
         function toggleApiKeyModal() {
@@ -448,7 +449,45 @@
         }
 
         function requestLocation() {
-            onCenterSelect("chungcheong:1");
+            showToast("📍 브라우저 GPS 위치를 탐색 중입니다...");
+            
+            if (gpsTimeoutTimer) clearTimeout(gpsTimeoutTimer);
+
+            // 5초 동안 GPS 응답이 없을 경우 핸들러
+            gpsTimeoutTimer = setTimeout(() => {
+                showToast("⚠️ GPS 연결이 지연되어 지역 선택창을 안내해 드립니다.", true);
+                // 기본값으로 충청권/대전시험장 세팅 및 수동선택 유도
+                onZoneChange("chungcheong");
+                document.getElementById('center-select').value = "chungcheong:1";
+                onCenterSelect("chungcheong:1");
+            }, 5000);
+
+            if (!navigator.geolocation) {
+                clearTimeout(gpsTimeoutTimer);
+                showToast("이 브라우저는 위치 정보를 지원하지 않습니다. 지역을 선택해주세요.", true);
+                onZoneChange("chungcheong");
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    clearTimeout(gpsTimeoutTimer);
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    document.getElementById('coord-display').textContent = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+                    fetchWeatherData(lat, lng, "현재 GPS 위치 (사용자 반경)");
+                    showToast("✅ GPS 위치를 성공적으로 연동했습니다.");
+                },
+                (error) => {
+                    clearTimeout(gpsTimeoutTimer);
+                    showToast("⚠️ GPS 권한이 거부되었거나 연결할 수 없어 지역 선택 모드로 전환합니다.", true);
+                    onZoneChange("chungcheong");
+                    // 기본 대전시험장 선택
+                    document.getElementById('center-select').value = "chungcheong:1";
+                    onCenterSelect("chungcheong:1");
+                },
+                { timeout: 5000, enableHighAccuracy: true }
+            );
         }
 
         function onZoneChange(zone) {
@@ -512,7 +551,7 @@
                 const ST = -0.2442 + (0.55399 * Tw) + (0.45535 * T) - (0.0022 * Math.pow(Tw, 2)) + (0.00278 * Tw * T) + 3.0;
                 return parseFloat(ST.toFixed(1));
             }
-            return parseFloat(T.toFixed(1));
+            return parseFloat(T.zIndex ? T.toFixed(1) : T.toFixed(1));
         }
 
         function getKmaBaseDateTime() {
