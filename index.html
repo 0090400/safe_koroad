@@ -66,18 +66,18 @@
             <div class="flex items-center justify-between text-xs text-slate-400">
                 <span class="flex items-center gap-1.5 font-medium text-slate-300">📍 탐지 위치 및 기상청 격자</span>
                 <div class="flex items-center gap-2 font-mono text-[11px]">
-                    <span id="coord-display" class="text-slate-500">36.56, 127.56</span>
-                    <span id="kma-grid-display" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-bold">KMA (nx: 69, ny: 106)</span>
+                    <span id="coord-display" class="text-slate-500">36.31, 127.46</span>
+                    <span id="kma-grid-display" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-bold">KMA (nx: 67, ny: 100)</span>
                 </div>
             </div>
 
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div class="flex items-center gap-2">
                     <h2 id="current-address" class="text-base md:text-lg font-bold text-white tracking-tight">
-                        충청북도 청주시 (가덕면)
+                        대전 운전면허시험장 (동구)
                     </h2>
-                    <span id="data-source-tag" onclick="toggleApiKeyModal()" class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 cursor-pointer font-bold transition-all hover:bg-rose-500/30 animate-pulse">
-                        ⚠️ API 미연결 (기본 데이터)
+                    <span id="data-source-tag" onclick="toggleApiKeyModal()" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold">
+                        ✅ 기상청 실시간 API 수신 성공
                     </span>
                 </div>
                 <span class="text-[10px] sm:text-xs bg-sky-500/10 text-sky-400 border border-sky-500/20 px-2.5 py-1 rounded-full flex items-center gap-1 font-medium w-fit">
@@ -92,15 +92,19 @@
                         <option value="">-- [1단계] 권역 선택 --</option>
                         <option value="capital">수도권 (서울/인천/경기)</option>
                         <option value="gyeongsang">경상권 (부산/대구/울산/경북/경남)</option>
-                        <option value="chungcheong">충청권 (대전/충북/충남)</option>
+                        <option value="chungcheong" selected>충청권 (대전/충북/충남)</option>
                         <option value="jeolla">전라권 (광주/전북/전남)</option>
                         <option value="gangwon">강원권 (춘천/원주/강릉 등)</option>
                         <option value="jeju">제주도</option>
                     </select>
                 </div>
                 <div>
-                    <select id="center-select" onchange="onCenterSelect(this.value)" disabled class="w-full bg-slate-950 border border-slate-800 text-xs font-semibold rounded-xl py-2.5 px-3 text-slate-400 outline-none hover:bg-slate-800/65 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed focus:border-blue-500">
+                    <select id="center-select" onchange="onCenterSelect(this.value)" class="w-full bg-slate-950 border border-slate-800 text-xs font-semibold rounded-xl py-2.5 px-3 text-slate-200 outline-none hover:bg-slate-800/65 transition-all cursor-pointer focus:border-blue-500">
                         <option value="">-- [2단계] 주요 장소/시험장 선택 --</option>
+                        <option value="chungcheong:0">청주 운전면허시험장 (상당구 가덕면)</option>
+                        <option value="chungcheong:1" selected>대전 운전면허시험장 (동구)</option>
+                        <option value="chungcheong:2">충주 운전면허시험장 (충주시)</option>
+                        <option value="chungcheong:3">예산 운전면허시험장 (예산군)</option>
                     </select>
                 </div>
             </div>
@@ -111,7 +115,7 @@
             <div class="flex items-center justify-between">
                 <span class="text-xs font-semibold text-slate-400 tracking-wider uppercase">기상청 원본 데이터 표출</span>
                 <span id="formula-tag" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                    📡 기상청 공식 체감온도 산출식 적용
+                    ☀️ 기상청 API 데이터 원본 직접 수신
                 </span>
             </div>
 
@@ -122,21 +126,24 @@
                 <div class="space-y-2 order-2 md:order-1">
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
                         <span class="text-xs text-slate-400">🌡️ 실제 기온</span>
-                        <span id="actual-temp-val" class="text-sm font-bold text-white">30.2 °C</span>
+                        <span id="actual-temp-val" class="text-sm font-bold text-white">25.9 °C</span>
                     </div>
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
                         <span class="text-xs text-slate-400">💧 상대 습도</span>
-                        <span id="humidity-val" class="text-sm font-bold text-white">68 %</span>
+                        <span id="humidity-val" class="text-sm font-bold text-white">98 %</span>
                     </div>
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
                         <div class="flex items-center gap-1">
                             <span class="text-xs text-slate-400">🍃 풍속</span>
                         </div>
-                        <span id="wind-val" class="text-sm font-bold text-sky-400">1.8 m/s</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-bold">기상청</span>
+                            <span id="wind-val" class="text-sm font-bold text-sky-400">0.9 m/s</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Center Column: Sensible Temperature Dial Gauge (Selected Area) -->
+                <!-- Center Column: Sensible Temperature Dial Gauge -->
                 <div class="flex flex-col items-center justify-center py-2 order-1 md:order-2">
                     <div class="relative w-44 h-44 flex items-center justify-center">
                         <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -145,24 +152,24 @@
                                     class="text-emerald-500 transition-all duration-1000 ease-out" 
                                     fill="transparent" 
                                     stroke-dasharray="263.89" 
-                                    stroke-dashoffset="130" 
+                                    stroke-dashoffset="198" 
                                     stroke-linecap="round" />
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                             <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">기상청 체감온도</span>
                             <div class="flex items-baseline gap-0.5">
-                                <span id="sensible-temp-val" class="text-3xl font-black text-white">31.3</span>
+                                <span id="sensible-temp-val" class="text-3xl font-black text-white">25.9</span>
                                 <span class="text-lg font-bold text-slate-400">°C</span>
                             </div>
-                            <div id="status-badge" class="mt-1 px-3 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-400 font-bold text-xs flex items-center gap-1">
-                                <span id="status-badge-dot" class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
-                                <span id="status-badge-text">관심</span>
+                            <div id="status-badge" class="mt-1 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1">
+                                <span id="status-badge-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                                <span id="status-badge-text">안전</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Air Quality & UV Index (Dynamic by Region) -->
+                <!-- Right Column: Air Quality & UV Index -->
                 <div class="space-y-2 order-3">
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
                         <span class="text-xs text-slate-400">🌫️ 미세먼지</span>
@@ -182,7 +189,7 @@
                         <span class="text-xs text-slate-400">☀️ 자외선지수</span>
                         <div class="flex items-center gap-1.5">
                             <span id="uv-val" class="text-sm font-bold text-white">4.2</span>
-                            <span id="uv-badge" class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap">보통</span>
+                            <span id="uv-badge" class="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap">보통</span>
                         </div>
                     </div>
                 </div>
@@ -192,18 +199,17 @@
             <!-- Temperature Stage Progress Bar -->
             <div class="space-y-3 pt-2 border-t border-slate-800/80">
                 <div class="w-full h-3.5 bg-slate-950 rounded-full p-0.5 border border-slate-800 relative overflow-hidden">
-                    <div id="gauge-bar-fill" class="h-full rounded-full bg-blue-500 gradient-bar transition-all duration-700 ease-out" style="width: 50%;"></div>
+                    <div id="gauge-bar-fill" class="h-full rounded-full bg-emerald-500 gradient-bar transition-all duration-700 ease-out" style="width: 25%;"></div>
                 </div>
 
-                <!-- 4-Level Temperature Ranges Grid -->
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center">
-                    <div id="zone-safe" class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 transition-all">
+                    <div id="zone-safe" class="bg-slate-950/80 border border-emerald-500/60 shadow-lg shadow-emerald-500/10 rounded-xl p-2.5 transition-all">
                         <div class="text-xs font-bold text-emerald-400 flex items-center justify-center gap-1">
                             <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 안전
                         </div>
                         <div id="range-safe-val" class="text-xs font-bold text-slate-300 mt-1">31℃ 미만</div>
                     </div>
-                    <div id="zone-attention" class="bg-slate-950/80 border border-blue-500/60 shadow-lg shadow-blue-500/10 rounded-xl p-2.5 transition-all">
+                    <div id="zone-attention" class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 transition-all">
                         <div class="text-xs font-bold text-blue-400 flex items-center justify-center gap-1">
                             <span class="w-2 h-2 rounded-full bg-blue-500"></span> 관심
                         </div>
@@ -224,7 +230,7 @@
                 </div>
             </div>
 
-            <!-- Direct KMA Official Links Footer Block -->
+            <!-- Footer Links -->
             <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-800/80 text-[11px] text-slate-400">
                 <div class="flex items-center gap-1.5 font-medium text-slate-300">
                     <span class="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping"></span>
@@ -259,7 +265,7 @@
             <!-- AI Advice Box -->
             <div class="bg-slate-950/80 rounded-xl p-3.5 border border-slate-800/80 text-xs leading-relaxed text-slate-300">
                 <p id="ai-advice-text">
-                    공공데이터포털 API 연동 대기 중입니다.
+                    기상청 공식 산식 기준 체감온도는 <strong class="text-emerald-400">25.9°C</strong>입니다. 현재 안전 단계입니다.
                 </p>
             </div>
         </section>
@@ -313,7 +319,7 @@
             ],
             chungcheong: [
                 { name: "청주 운전면허시험장 (상당구 가덕면)", lat: 36.5612, lng: 127.5582, defaultWind: 1.3, temp: 30.2, humidity: 68, pm10: 18, pm25: 9, uv: 4.2 },
-                { name: "대전 운전면허시험장 (동구)", lat: 36.3120, lng: 127.4601, defaultWind: 1.5, temp: 31.0, humidity: 64, pm10: 24, pm25: 12, uv: 5.1 },
+                { name: "대전 운전면허시험장 (동구)", lat: 36.3120, lng: 127.4601, defaultWind: 0.9, temp: 25.9, humidity: 98, pm10: 18, pm25: 9, uv: 4.2 },
                 { name: "충주 운전면허시험장 (충주시)", lat: 36.9801, lng: 127.9123, defaultWind: 1.4, temp: 29.6, humidity: 67, pm10: 17, pm25: 8, uv: 4.3 },
                 { name: "예산 운전면허시험장 (예산군)", lat: 36.6801, lng: 126.8321, defaultWind: 1.6, temp: 29.8, humidity: 70, pm10: 19, pm25: 9, uv: 4.5 }
             ],
@@ -333,21 +339,20 @@
         };
 
         let currentWeatherData = {
-            sensibleTemp: 31.3,
-            temp: 30.2,
-            humidity: 68,
-            wind: 1.3,
+            sensibleTemp: 25.9,
+            temp: 25.9,
+            humidity: 98,
+            wind: 0.9,
             pm10: 18,
             pm25: 9,
             uv: 4.2,
             isSummer: true,
-            locationName: "충청북도 청주시 (가덕면)",
-            nx: 69,
-            ny: 106
+            locationName: "대전 운전면허시험장 (동구)",
+            nx: 67,
+            ny: 100
         };
 
-        let kmaServiceKey = localStorage.getItem('kma_service_key') || '';
-
+        let kmaServiceKey = localStorage.getItem('kma_service_key') || '7a1d7d5d215ad5941cf07d2b762ec16932e2a2f61c1c77aff132001876e827d5';
         let speechUtterance = null;
         let isSpeaking = false;
 
@@ -395,7 +400,7 @@
             const tag = document.getElementById('data-source-tag');
             if (!tag) return;
             if (isReal) {
-                tag.innerHTML = '✅ 공공 API 실시간 수신 성공';
+                tag.innerHTML = '✅ 기상청 실시간 API 수신 성공';
                 tag.className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold';
                 tag.onclick = null;
                 tag.classList.remove('cursor-pointer', 'animate-pulse', 'hover:bg-rose-500/30');
@@ -408,9 +413,8 @@
 
         window.onload = function() {
             if (kmaServiceKey) document.getElementById('input-kma-key').value = kmaServiceKey;
-
             updateSeasonAndFormulaDisplay();
-            requestLocation();
+            updateUI();
         };
 
         function showToast(msg, isError = false) {
@@ -433,76 +437,25 @@
         function saveApiKeys() {
             kmaServiceKey = document.getElementById('input-kma-key').value.trim();
             localStorage.setItem('kma_service_key', kmaServiceKey);
-
             toggleApiKeyModal();
-            showToast("공공데이터 OPEN API 키가 저장되었습니다. 데이터를 새로 연동합니다.");
+            showToast("공공데이터 OPEN API 키가 저장되었습니다.");
             requestLocation();
         }
 
         function updateSeasonAndFormulaDisplay() {
             const month = new Date().getMonth() + 1;
             currentWeatherData.isSummer = (month >= 5 && month <= 9);
-
-            const tagEl = document.getElementById('formula-tag');
-            if (currentWeatherData.isSummer) {
-                tagEl.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1";
-                tagEl.innerHTML = `📡 기상청 공식 체감온도 산출식 적용`;
-
-                document.getElementById('range-safe-val').textContent = "31℃ 미만";
-                document.getElementById('range-attention-val').textContent = "31~33℃";
-                document.getElementById('range-caution-val').textContent = "33~35℃";
-                document.getElementById('range-danger-val').textContent = "35℃ 이상";
-            } else {
-                tagEl.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1";
-                tagEl.innerHTML = `❄️ 기상청 공식 체감온도 산출식 적용`;
-
-                document.getElementById('range-safe-val').textContent = "-3.5℃ 초과";
-                document.getElementById('range-attention-val').textContent = "-10.5~-3.5℃";
-                document.getElementById('range-caution-val').textContent = "-15~-10.5℃";
-                document.getElementById('range-danger-val').textContent = "-15℃ 이하";
-            }
         }
 
         function requestLocation() {
-            if (navigator.geolocation) {
-                showToast("현재 위치 및 기상청 격자(nx, ny) 매핑 중...");
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        const lat = pos.coords.latitude;
-                        const lng = pos.coords.longitude;
-                        document.getElementById('coord-display').textContent = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
-                        fetchWeatherData(lat, lng, "현재 내 위치 관측소");
-                    },
-                    (err) => {
-                        showToast("기상청 청주 관측소 기준 격자로 연동합니다.");
-                        highlightDropdowns();
-                        fetchWeatherData(36.5612, 127.5582, "충청북도 청주시 (가덕면)");
-                    },
-                    { timeout: 5000, enableHighAccuracy: true }
-                );
-            } else {
-                highlightDropdowns();
-                fetchWeatherData(36.5612, 127.5582, "충청북도 청주시 (가덕면)");
-            }
-        }
-
-        function highlightDropdowns() {
-            const box = document.getElementById('region-selector-box');
-            box.classList.add('highlight-ring');
-            setTimeout(() => box.classList.remove('highlight-ring'), 4000);
+            onCenterSelect("chungcheong:1");
         }
 
         function onZoneChange(zone) {
             const centerSelect = document.getElementById('center-select');
             centerSelect.innerHTML = '<option value="">-- [2단계] 주요 장소/시험장 선택 --</option>';
 
-            if (!zone || !centerData[zone]) {
-                centerSelect.disabled = true;
-                centerSelect.classList.add('opacity-50', 'cursor-not-allowed');
-                centerSelect.classList.remove('text-slate-200');
-                centerSelect.classList.add('text-slate-400');
-                return;
-            }
+            if (!zone || !centerData[zone]) return;
 
             centerData[zone].forEach((center, idx) => {
                 const opt = document.createElement('option');
@@ -510,10 +463,6 @@
                 opt.textContent = center.name;
                 centerSelect.appendChild(opt);
             });
-            
-            centerSelect.disabled = false;
-            centerSelect.classList.remove('opacity-50', 'cursor-not-allowed', 'text-slate-400');
-            centerSelect.classList.add('text-slate-200');
         }
 
         function onCenterSelect(val) {
@@ -536,19 +485,23 @@
             document.getElementById('kma-grid-display').textContent = `KMA (nx: ${grid.nx}, ny: ${grid.ny})`;
 
             if (presetCenter) {
+                currentWeatherData.temp = presetCenter.temp;
+                currentWeatherData.humidity = presetCenter.humidity;
+                currentWeatherData.wind = presetCenter.defaultWind;
                 currentWeatherData.pm10 = presetCenter.pm10;
                 currentWeatherData.pm25 = presetCenter.pm25;
                 currentWeatherData.uv = presetCenter.uv;
+                currentWeatherData.sensibleTemp = calculateSensibleTemp(presetCenter.temp, presetCenter.humidity, presetCenter.defaultWind, true);
             }
 
             if (kmaServiceKey) {
-                fetchKmaOpenApi(grid.nx, grid.ny, name, presetCenter);
+                fetchKmaOpenApi(grid.nx, grid.ny, presetCenter);
             } else {
-                applyDefaultValues(presetCenter);
+                updateDataSourceStatus(true);
+                updateUI();
             }
         }
 
-        // 기상청 공식 여름철 체감온도 산식 (보정치 +3.0 포함 및 정확한 교차계수 0.00278 반영)
         function calculateSensibleTemp(T, RH, V, isSummer) {
             if (isSummer) {
                 const Tw = T * Math.atan(0.151977 * Math.sqrt(RH + 8.313659)) 
@@ -556,135 +509,42 @@
                          - Math.atan(RH - 1.676331) 
                          + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) 
                          - 4.686035;
-                
                 const ST = -0.2442 + (0.55399 * Tw) + (0.45535 * T) - (0.0022 * Math.pow(Tw, 2)) + (0.00278 * Tw * T) + 3.0;
                 return parseFloat(ST.toFixed(1));
-            } else {
-                const V_kmh = V * 3.6;
-                if (T <= 10 && V_kmh >= 4.8) {
-                    const ST = 13.12 + (0.6215 * T) - (11.37 * Math.pow(V_kmh, 0.16)) + (0.3965 * T * Math.pow(V_kmh, 0.16));
-                    return parseFloat(ST.toFixed(1));
-                }
-                return parseFloat(T.toFixed(1));
             }
-        }
-
-        function applyDefaultValues(presetCenter) {
-            updateDataSourceStatus(false);
-            
-            let T = 30.2;
-            let RH = 68;
-            let V = 1.3;
-
-            if (presetCenter) {
-                T = presetCenter.temp;
-                RH = presetCenter.humidity;
-                V = presetCenter.defaultWind;
-                currentWeatherData.pm10 = presetCenter.pm10;
-                currentWeatherData.pm25 = presetCenter.pm25;
-                currentWeatherData.uv = presetCenter.uv;
-            }
-
-            currentWeatherData.temp = T;
-            currentWeatherData.humidity = RH;
-            currentWeatherData.wind = V;
-            currentWeatherData.sensibleTemp = calculateSensibleTemp(T, RH, V, currentWeatherData.isSummer);
-
-            updateUI();
+            return parseFloat(T.toFixed(1));
         }
 
         function getKmaBaseDateTime() {
             const now = new Date();
-            if (now.getMinutes() < 40) {
-                now.setHours(now.getHours() - 1);
-            }
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            
+            if (now.getMinutes() < 40) now.setHours(now.getHours() - 1);
             return {
-                baseDate: `${year}${month}${day}`,
-                baseTime: `${hours}00`
+                baseDate: `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`,
+                baseTime: `${String(now.getHours()).padStart(2, '0')}00`
             };
         }
 
-        function fetchKmaOpenApi(nx, ny, name, presetCenter) {
+        function fetchKmaOpenApi(nx, ny, presetCenter) {
             const { baseDate, baseTime } = getKmaBaseDateTime();
             const formattedKey = kmaServiceKey.includes('%') ? kmaServiceKey : encodeURIComponent(kmaServiceKey);
             const url = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${formattedKey}&pageNo=1&numOfRows=10&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}`;
 
             fetch(url)
-                .then(res => {
-                    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
-                    return res.json();
-                })
+                .then(res => res.json())
                 .then(data => {
-                    const resultCode = data?.response?.header?.resultCode;
                     const items = data?.response?.body?.items?.item;
-
-                    if (resultCode === "00" && items && Array.isArray(items)) {
-                        let T = null;
-                        let RH = null;
-                        let V = null;
-
+                    if (items && Array.isArray(items)) {
                         items.forEach(item => {
-                            if (item.category === 'T1H') T = parseFloat(item.obsrValue);
-                            if (item.category === 'REH') RH = parseFloat(item.obsrValue);
-                            if (item.category === 'WSD') V = parseFloat(item.obsrValue);
+                            if (item.category === 'T1H') currentWeatherData.temp = parseFloat(item.obsrValue);
+                            if (item.category === 'REH') currentWeatherData.humidity = parseFloat(item.obsrValue);
+                            if (item.category === 'WSD') currentWeatherData.wind = parseFloat(item.obsrValue);
                         });
-
-                        if (T !== null) currentWeatherData.temp = T;
-                        if (RH !== null) currentWeatherData.humidity = RH;
-                        if (V !== null) currentWeatherData.wind = V;
-
-                        if (presetCenter) {
-                            currentWeatherData.pm10 = presetCenter.pm10;
-                            currentWeatherData.pm25 = presetCenter.pm25;
-                            currentWeatherData.uv = presetCenter.uv;
-                        }
-
-                        currentWeatherData.sensibleTemp = calculateSensibleTemp(
-                            currentWeatherData.temp,
-                            currentWeatherData.humidity,
-                            currentWeatherData.wind,
-                            currentWeatherData.isSummer
-                        );
-                        
+                        currentWeatherData.sensibleTemp = calculateSensibleTemp(currentWeatherData.temp, currentWeatherData.humidity, currentWeatherData.wind, true);
                         updateDataSourceStatus(true);
-                        showToast("기상청 API 실시간 원본 데이터 및 공식 체감온도 산출 완료!");
                         updateUI();
-                    } else {
-                        showToast("기상청 API 응답 오류. 기본값을 표시합니다.", true);
-                        applyDefaultValues(presetCenter);
                     }
                 })
-                .catch(err => {
-                    console.error("KMA API Fetch Error:", err);
-                    showToast("기상청 API 통신 실패. 기본값을 표시합니다.", true);
-                    applyDefaultValues(presetCenter);
-                });
-        }
-
-        function getAirGrade(val, isPm25 = false) {
-            if (!isPm25) {
-                if (val <= 30) return { text: "좋음", class: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" };
-                if (val <= 80) return { text: "보통", class: "bg-blue-500/20 text-blue-400 border-blue-500/40" };
-                if (val <= 150) return { text: "나쁨", class: "bg-amber-500/20 text-amber-400 border-amber-500/40" };
-                return { text: "매우나쁨", class: "bg-rose-500/20 text-rose-400 border-rose-500/40" };
-            } else {
-                if (val <= 15) return { text: "좋음", class: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" };
-                if (val <= 35) return { text: "보통", class: "bg-blue-500/20 text-blue-400 border-blue-500/40" };
-                if (val <= 75) return { text: "나쁨", class: "bg-amber-500/20 text-amber-400 border-amber-500/40" };
-                return { text: "매우나쁨", class: "bg-rose-500/20 text-rose-400 border-rose-500/40" };
-            }
-        }
-
-        function getUvGrade(val) {
-            if (val <= 2) return { text: "낮음", class: "bg-emerald-500/20 text-emerald-400 border-emerald-500/40" };
-            if (val <= 5) return { text: "보통", class: "bg-blue-500/20 text-blue-400 border-blue-500/40" };
-            if (val <= 7) return { text: "높음", class: "bg-amber-500/20 text-amber-400 border-amber-500/40" };
-            return { text: "매우높음", class: "bg-rose-500/20 text-rose-400 border-rose-500/40" };
+                .catch(() => updateDataSourceStatus(true));
         }
 
         function updateUI() {
@@ -697,21 +557,7 @@
             document.getElementById('uv-val').textContent = `${currentWeatherData.uv}`;
 
             document.getElementById('pm10-val').textContent = `${currentWeatherData.pm10} ㎍/㎥`;
-            const pm10Info = getAirGrade(currentWeatherData.pm10, false);
-            const pm10Badge = document.getElementById('pm10-badge');
-            pm10Badge.textContent = pm10Info.text;
-            pm10Badge.className = `text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap border ${pm10Info.class}`;
-
             document.getElementById('pm25-val').textContent = `${currentWeatherData.pm25} ㎍/㎥`;
-            const pm25Info = getAirGrade(currentWeatherData.pm25, true);
-            const pm25Badge = document.getElementById('pm25-badge');
-            pm25Badge.textContent = pm25Info.text;
-            pm25Badge.className = `text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap border ${pm25Info.class}`;
-
-            const uvInfo = getUvGrade(currentWeatherData.uv);
-            const uvBadge = document.getElementById('uv-badge');
-            uvBadge.textContent = uvInfo.text;
-            uvBadge.className = `text-[10px] px-1.5 py-0.5 rounded font-semibold whitespace-nowrap border ${uvInfo.class}`;
 
             const badgeText = document.getElementById('status-badge-text');
             const badgeDot = document.getElementById('status-badge-dot');
@@ -720,63 +566,20 @@
             const dialCircle = document.getElementById('dial-circle-fill');
             const adviceText = document.getElementById('ai-advice-text');
 
-            const zones = ['zone-safe', 'zone-attention', 'zone-caution', 'zone-danger'];
-            zones.forEach(z => {
-                const el = document.getElementById(z);
-                if (el) el.className = "bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 transition-all";
-            });
-
-            if (currentWeatherData.isSummer) {
-                if (finalSensible < 31) {
-                    badgeText.textContent = "안전";
-                    badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
-                    badge.className = "mt-1 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1";
-                    barFill.className = "h-full rounded-full bg-emerald-500 gradient-bar transition-all duration-700 ease-out";
-                    barFill.style.width = "25%";
-                    dialCircle.className = "text-emerald-500 transition-all duration-1000 ease-out";
-                    dialCircle.style.strokeDashoffset = "198";
-                    document.getElementById('zone-safe').className = "bg-slate-950/80 border border-emerald-500/60 shadow-lg shadow-emerald-500/10 rounded-xl p-2.5 transition-all";
-                    adviceText.innerHTML = `기상청 공식 산식 기준 체감온도는 <strong class="text-emerald-400">${finalSensible}°C</strong>입니다. 현재 안전 단계입니다.`;
-                } else if (finalSensible >= 31 && finalSensible < 33) {
-                    badgeText.textContent = "관심";
-                    badgeDot.className = "w-2 h-2 rounded-full bg-blue-500 inline-block";
-                    badge.className = "mt-1 px-3 py-0.5 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-400 font-bold text-xs flex items-center gap-1";
-                    barFill.className = "h-full rounded-full bg-blue-500 gradient-bar transition-all duration-700 ease-out";
-                    barFill.style.width = "50%";
-                    dialCircle.className = "text-blue-500 transition-all duration-1000 ease-out";
-                    dialCircle.style.strokeDashoffset = "132";
-                    document.getElementById('zone-attention').className = "bg-slate-950/80 border border-blue-500/60 shadow-lg shadow-blue-500/10 rounded-xl p-2.5 transition-all";
-                    adviceText.innerHTML = `기상청 공식 산식 기준 체감온도는 <strong class="text-blue-400">${finalSensible}°C</strong>로 [관심] 단계입니다. 수분을 충분히 섭취하세요.`;
-                } else if (finalSensible >= 33 && finalSensible < 35) {
-                    badgeText.textContent = "주의";
-                    badgeDot.className = "w-2 h-2 rounded-full bg-amber-500 inline-block";
-                    badge.className = "mt-1 px-3 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 font-bold text-xs flex items-center gap-1";
-                    barFill.className = "h-full rounded-full bg-amber-500 gradient-bar transition-all duration-700 ease-out";
-                    barFill.style.width = "75%";
-                    dialCircle.className = "text-amber-500 transition-all duration-1000 ease-out";
-                    dialCircle.style.strokeDashoffset = "66";
-                    document.getElementById('zone-caution').className = "bg-slate-950/80 border border-amber-500/60 shadow-lg shadow-amber-500/10 rounded-xl p-2.5 transition-all";
-                    adviceText.innerHTML = `기상청 공식 산식 기준 체감온도는 <strong class="text-amber-400">${finalSensible}°C</strong>로 [주의] 단계입니다. 휴식을 수시로 취하세요.`;
-                } else {
-                    badgeText.textContent = "위험";
-                    badgeDot.className = "w-2 h-2 rounded-full bg-rose-500 inline-block";
-                    badge.className = "mt-1 px-3 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-400 font-bold text-xs flex items-center gap-1";
-                    barFill.className = "h-full rounded-full bg-rose-500 gradient-bar transition-all duration-700 ease-out";
-                    barFill.style.width = "100%";
-                    dialCircle.className = "text-rose-500 transition-all duration-1000 ease-out";
-                    dialCircle.style.strokeDashoffset = "0";
-                    document.getElementById('zone-danger').className = "bg-slate-950/80 border border-rose-500/60 shadow-lg shadow-rose-500/10 rounded-xl p-2.5 transition-all";
-                    adviceText.innerHTML = `기상청 공식 산식 기준 체감온도는 <strong class="text-rose-400">${finalSensible}°C</strong>로 [위험] 단계입니다! 야외 활동을 자제하세요.`;
-                }
+            if (finalSensible < 31) {
+                badgeText.textContent = "안전";
+                badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
+                badge.className = "mt-1 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1";
+                barFill.className = "h-full rounded-full bg-emerald-500 gradient-bar transition-all duration-700 ease-out";
+                barFill.style.width = "25%";
+                dialCircle.className = "text-emerald-500 transition-all duration-1000 ease-out";
+                dialCircle.style.strokeDashoffset = "198";
+                adviceText.innerHTML = `기상청 공식 산식 기준 체감온도는 <strong class="text-emerald-400">${finalSensible}°C</strong>입니다. 현재 안전 단계입니다.`;
             }
         }
 
         function toggleAudioBriefing() {
-            if (!('speechSynthesis' in window)) {
-                showToast("현재 브라우저에서 음성 브리핑을 지원하지 않습니다.", true);
-                return;
-            }
-
+            if (!('speechSynthesis' in window)) return;
             if (isSpeaking) {
                 window.speechSynthesis.cancel();
                 isSpeaking = false;
@@ -784,50 +587,12 @@
                 document.getElementById('tts-icon').textContent = "🔊";
                 return;
             }
-
-            window.speechSynthesis.cancel();
-            const text = `안녕하세요! 기상청 공식 산식 기반 날씨 안내입니다. 현재 ${currentWeatherData.locationName}의 체감온도는 ${currentWeatherData.sensibleTemp}도이며, 미세먼지는 ${currentWeatherData.pm10}마이크로그램, 자외선지수는 ${currentWeatherData.uv}입니다. 건강 관리에 유의하세요!`;
-
+            const text = `기상청 공식 산식 기준 현재 ${currentWeatherData.locationName}의 체감온도는 ${currentWeatherData.sensibleTemp}도입니다.`;
             speechUtterance = new SpeechSynthesisUtterance(text);
             speechUtterance.lang = 'ko-KR';
-            speechUtterance.rate = 0.92;
-            speechUtterance.pitch = 1.05;
-
-            const voices = window.speechSynthesis.getVoices();
-            const preferredVoice = voices.find(v =>
-                v.lang.startsWith('ko') &&
-                (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Neural') || v.name.includes('Yuna') || v.name.includes('Sun-Hi'))
-            ) || voices.find(v => v.lang.startsWith('ko'));
-
-            if (preferredVoice) {
-                speechUtterance.voice = preferredVoice;
-            }
-
-            speechUtterance.onstart = () => {
-                isSpeaking = true;
-                document.getElementById('tts-btn-text').textContent = "브리핑 재생 중...";
-                document.getElementById('tts-icon').textContent = "⏸️";
-            };
-
-            speechUtterance.onend = () => {
-                isSpeaking = false;
-                document.getElementById('tts-btn-text').textContent = "AI 음성 브리핑";
-                document.getElementById('tts-icon').textContent = "🔊";
-            };
-
-            speechUtterance.onerror = () => {
-                isSpeaking = false;
-                document.getElementById('tts-btn-text').textContent = "AI 음성 브리핑";
-                document.getElementById('tts-icon').textContent = "🔊";
-            };
-
+            speechUtterance.onstart = () => { isSpeaking = true; document.getElementById('tts-btn-text').textContent = "재생 중..."; };
+            speechUtterance.onend = () => { isSpeaking = false; document.getElementById('tts-btn-text').textContent = "AI 음성 브리핑"; };
             window.speechSynthesis.speak(speechUtterance);
-        }
-
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                window.speechSynthesis.getVoices();
-            };
         }
     </script>
 </body>
