@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>실시간 체감온도 나침반</title>
+    <title>KoRoad 안전 알림판</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts Inter -->
@@ -43,7 +43,7 @@
                 </div>
                 <div>
                     <h1 class="text-lg md:text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent flex items-center gap-2">
-                        실시간 체감온도 나침반
+                        KoRoad 안전 알림판
                     </h1>
                 </div>
             </div>
@@ -87,12 +87,13 @@
                 <div>
                     <select id="region-zone-select" onchange="onZoneChange(this.value)" class="w-full bg-slate-950 border border-slate-800 text-xs font-semibold rounded-xl py-2.5 px-3 text-slate-200 outline-none hover:bg-slate-800/65 transition-all cursor-pointer focus:border-blue-500">
                         <option value="">-- [1단계] 권역 선택 --</option>
-                        <option value="capital">수도권 (서울/인천/경기)</option>
-                        <option value="gyeongsang">경상권 (부산/대구/울산/경북/경남)</option>
-                        <option value="chungcheong">충청권 (대전/충북/충남)</option>
-                        <option value="jeolla">전라권 (광주/전북/전남)</option>
-                        <option value="gangwon">강원권 (춘천/원주/강릉 등)</option>
-                        <option value="jeju">제주도</option>
+                        <option value="seoul_gyeonggi_incheon">서울 · 경기 · 인천</option>
+                        <option value="busan_ulsan_gyeongnam">부산 · 울산 · 경남</option>
+                        <option value="daegu_gyeongbuk">대구 · 경북</option>
+                        <option value="daejeon_chungnam">대전 · 충남</option>
+                        <option value="chungbuk">충북</option>
+                        <option value="gwangju_jeolla">광주 · 전라</option>
+                        <option value="gangwon_jeju">강원 · 제주</option>
                     </select>
                 </div>
                 <div>
@@ -204,15 +205,15 @@
                     </div>
                     <div id="zone-attention" class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 transition-all">
                         <div class="text-xs font-bold text-blue-400 flex items-center justify-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-blue-500"></span> 관심
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span> 주의
                         </div>
-                        <div id="range-attention-val" class="text-xs font-bold text-slate-300 mt-1">31~33℃</div>
+                        <div id="range-attention-val" class="text-xs font-bold text-slate-300 mt-1">31~33℃ 미만</div>
                     </div>
                     <div id="zone-caution" class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 transition-all">
                         <div class="text-xs font-bold text-amber-400 flex items-center justify-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> 주의
+                            <span class="w-2 h-2 rounded-full bg-amber-500"></span> 경고
                         </div>
-                        <div id="range-caution-val" class="text-xs font-bold text-slate-300 mt-1">33~35℃</div>
+                        <div id="range-caution-val" class="text-xs font-bold text-slate-300 mt-1">33~35℃ 미만</div>
                     </div>
                     <div id="zone-danger" class="bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 transition-all">
                         <div class="text-xs font-bold text-rose-400 flex items-center justify-center gap-1">
@@ -293,41 +294,46 @@
 
     <script>
         const centerData = {
-            capital: [
-                { name: "인천 운전면허시험장 (남동구)", lat: 37.4061, lng: 126.6669, defaultWind: 1.8, temp: 29.8, humidity: 72, pm10: 22, pm25: 11, uv: 4.5 },
-                { name: "강남 운전면허시험장 (강남구)", lat: 37.5082, lng: 127.0673, defaultWind: 1.5, temp: 30.5, humidity: 65, pm10: 25, pm25: 13, uv: 5.0 },
-                { name: "강서 운전면허시험장 (강서구)", lat: 37.5501, lng: 126.8152, defaultWind: 2.1, temp: 30.1, humidity: 67, pm10: 20, pm25: 10, uv: 4.8 },
-                { name: "도봉 운전면허시험장 (노원구)", lat: 37.6533, lng: 127.0583, defaultWind: 1.3, temp: 29.9, humidity: 66, pm10: 19, pm25: 9, uv: 4.6 },
-                { name: "서부 운전면허시험장 (마포구)", lat: 37.5801, lng: 126.8885, defaultWind: 1.7, temp: 30.2, humidity: 68, pm10: 21, pm25: 11, uv: 4.7 },
-                { name: "용인 운전면허시험장 (기흥구)", lat: 37.2694, lng: 127.1086, defaultWind: 1.2, temp: 29.5, humidity: 70, pm10: 18, pm25: 8, uv: 4.3 },
-                { name: "의정부 운전면허시험장 (의정부시)", lat: 37.7601, lng: 127.0805, defaultWind: 1.4, temp: 29.3, humidity: 69, pm10: 17, pm25: 8, uv: 4.2 },
-                { name: "안산 운전면허시험장 (단원구)", lat: 37.3331, lng: 126.8378, defaultWind: 2.0, temp: 29.7, humidity: 71, pm10: 23, pm25: 12, uv: 4.4 }
+            seoul_gyeonggi_incheon: [
+                { name: "강남 운전면허시험장 (서울 강남구)", lat: 37.5082, lng: 127.0673, defaultWind: 1.5, temp: 30.5, humidity: 65, pm10: 25, pm25: 13, uv: 5.0 },
+                { name: "강서 운전면허시험장 (서울 강서구)", lat: 37.5501, lng: 126.8152, defaultWind: 2.1, temp: 30.1, humidity: 67, pm10: 20, pm25: 10, uv: 4.8 },
+                { name: "도봉 운전면허시험장 (서울 노원구)", lat: 37.6533, lng: 127.0583, defaultWind: 1.3, temp: 29.9, humidity: 66, pm10: 19, pm25: 9, uv: 4.6 },
+                { name: "서부 운전면허시험장 (서울 마포구)", lat: 37.5801, lng: 126.8885, defaultWind: 1.7, temp: 30.2, humidity: 68, pm10: 21, pm25: 11, uv: 4.7 },
+                { name: "인천 운전면허시험장 (인천 남동구)", lat: 37.4061, lng: 126.6669, defaultWind: 1.8, temp: 29.8, humidity: 72, pm10: 22, pm25: 11, uv: 4.5 },
+                { name: "용인 운전면허시험장 (경기 용인시)", lat: 37.2694, lng: 127.1086, defaultWind: 1.2, temp: 29.5, humidity: 70, pm10: 18, pm25: 8, uv: 4.3 },
+                { name: "안산 운전면허시험장 (경기 안산시)", lat: 37.3331, lng: 126.8378, defaultWind: 2.0, temp: 29.7, humidity: 71, pm10: 23, pm25: 12, uv: 4.4 },
+                { name: "의정부 운전면허시험장 (경기 의정부시)", lat: 37.7601, lng: 127.0805, defaultWind: 1.4, temp: 29.3, humidity: 69, pm10: 17, pm25: 8, uv: 4.2 }
             ],
-            gyeongsang: [
-                { name: "부산 남부 운전면허시험장 (남구)", lat: 35.1328, lng: 129.1023, defaultWind: 2.4, temp: 28.9, humidity: 76, pm10: 16, pm25: 8, uv: 5.2 },
-                { name: "부산 북부 운전면허시험장 (사상구)", lat: 35.2403, lng: 128.9897, defaultWind: 2.0, temp: 29.2, humidity: 74, pm10: 19, pm25: 9, uv: 5.0 },
-                { name: "대구 운전면허시험장 (북구)", lat: 35.9381, lng: 128.5523, defaultWind: 1.1, temp: 32.1, humidity: 60, pm10: 28, pm25: 14, uv: 5.8 },
-                { name: "울산 운전면허시험장 (울주군)", lat: 35.5802, lng: 129.3510, defaultWind: 2.2, temp: 29.5, humidity: 73, pm10: 18, pm25: 9, uv: 5.3 },
-                { name: "포항 운전면허시험장 (오천읍)", lat: 35.9781, lng: 129.3801, defaultWind: 2.5, temp: 29.0, humidity: 75, pm10: 15, pm25: 7, uv: 5.5 }
+            busan_ulsan_gyeongnam: [
+                { name: "부산 남부 운전면허시험장 (부산 남구)", lat: 35.1328, lng: 129.1023, defaultWind: 2.4, temp: 28.9, humidity: 76, pm10: 16, pm25: 8, uv: 5.2 },
+                { name: "부산 북부 운전면허시험장 (부산 사상구)", lat: 35.2403, lng: 128.9897, defaultWind: 2.0, temp: 29.2, humidity: 74, pm10: 19, pm25: 9, uv: 5.0 },
+                { name: "울산 운전면허시험장 (울산 울주군)", lat: 35.5802, lng: 129.3510, defaultWind: 2.2, temp: 29.5, humidity: 73, pm10: 18, pm25: 9, uv: 5.3 },
+                { name: "마산 운전면허시험장 (경남 창원시)", lat: 35.1852, lng: 128.5320, defaultWind: 1.9, temp: 29.8, humidity: 71, pm10: 17, pm25: 8, uv: 5.1 }
             ],
-            chungcheong: [
-                { name: "청주 운전면허시험장 (상당구 가덕면)", lat: 36.5612, lng: 127.5582, defaultWind: 1.3, temp: 30.2, humidity: 68, pm10: 18, pm25: 9, uv: 4.2 },
-                { name: "대전 운전면허시험장 (동구)", lat: 36.3120, lng: 127.4601, defaultWind: 0.9, temp: 25.9, humidity: 98, pm10: 18, pm25: 9, uv: 4.2 },
-                { name: "충주 운전면허시험장 (충주시)", lat: 36.9801, lng: 127.9123, defaultWind: 1.4, temp: 29.6, humidity: 67, pm10: 17, pm25: 8, uv: 4.3 },
-                { name: "예산 운전면허시험장 (예산군)", lat: 36.6801, lng: 126.8321, defaultWind: 1.6, temp: 29.8, humidity: 70, pm10: 19, pm25: 9, uv: 4.5 }
+            daegu_gyeongbuk: [
+                { name: "대구 운전면허시험장 (대구 북구)", lat: 35.9381, lng: 128.5523, defaultWind: 1.1, temp: 32.1, humidity: 60, pm10: 28, pm25: 14, uv: 5.8 },
+                { name: "포항 운전면허시험장 (경북 포항시)", lat: 35.9781, lng: 129.3801, defaultWind: 2.5, temp: 29.0, humidity: 75, pm10: 15, pm25: 7, uv: 5.5 },
+                { name: "문경 운전면허시험장 (경북 문경시)", lat: 36.6210, lng: 128.1650, defaultWind: 1.4, temp: 29.3, humidity: 68, pm10: 16, pm25: 8, uv: 4.8 }
             ],
-            jeolla: [
-                { name: "전북 운전면허시험장 (전주시)", lat: 35.8451, lng: 127.0812, defaultWind: 1.3, temp: 30.6, humidity: 69, pm10: 21, pm25: 10, uv: 4.6 },
-                { name: "전남 운전면허시험장 (나주시)", lat: 35.0123, lng: 126.7123, defaultWind: 1.5, temp: 30.1, humidity: 72, pm10: 18, pm25: 9, uv: 4.7 },
-                { name: "광양 운전면허시험장 (광양읍)", lat: 34.9781, lng: 127.5901, defaultWind: 1.8, temp: 29.7, humidity: 74, pm10: 16, pm25: 8, uv: 4.9 }
+            daejeon_chungnam: [
+                { name: "대전 운전면허시험장 (대전 동구)", lat: 36.3120, lng: 127.4601, defaultWind: 0.9, temp: 25.9, humidity: 98, pm10: 18, pm25: 9, uv: 4.2 },
+                { name: "예산 운전면허시험장 (충남 예산군)", lat: 36.6801, lng: 126.8321, defaultWind: 1.6, temp: 29.8, humidity: 70, pm10: 19, pm25: 9, uv: 4.5 }
             ],
-            gangwon: [
-                { name: "춘천 운전면허시험장 (신북읍)", lat: 37.8981, lng: 127.7312, defaultWind: 1.2, temp: 29.1, humidity: 65, pm10: 14, pm25: 6, uv: 4.1 },
-                { name: "원주 운전면허시험장 (호저면)", lat: 37.3601, lng: 127.9201, defaultWind: 1.3, temp: 29.4, humidity: 66, pm10: 15, pm25: 7, uv: 4.2 },
-                { name: "강릉 운전면허시험장 (사천면)", lat: 37.7801, lng: 128.9012, defaultWind: 2.6, temp: 28.5, humidity: 78, pm10: 12, pm25: 5, uv: 5.2 }
+            chungbuk: [
+                { name: "청주 운전면허시험장 (충북 청주시)", lat: 36.5612, lng: 127.5582, defaultWind: 1.3, temp: 30.2, humidity: 68, pm10: 18, pm25: 9, uv: 4.2 },
+                { name: "충주 운전면허시험장 (충북 충주시)", lat: 36.9801, lng: 127.9123, defaultWind: 1.4, temp: 29.6, humidity: 67, pm10: 17, pm25: 8, uv: 4.3 }
             ],
-            jeju: [
-                { name: "제주 운전면허시험장 (애월읍)", lat: 33.4321, lng: 126.4123, defaultWind: 3.2, temp: 28.8, humidity: 80, pm10: 11, pm25: 4, uv: 5.9 }
+            gwangju_jeolla: [
+                { name: "전남 운전면허시험장 (전남 나주시)", lat: 35.0123, lng: 126.7123, defaultWind: 1.5, temp: 30.1, humidity: 72, pm10: 18, pm25: 9, uv: 4.7 },
+                { name: "광양 운전면허시험장 (전남 광양시)", lat: 34.9781, lng: 127.5901, defaultWind: 1.8, temp: 29.7, humidity: 74, pm10: 16, pm25: 8, uv: 4.9 },
+                { name: "전북 운전면허시험장 (전북 전주시)", lat: 35.8451, lng: 127.0812, defaultWind: 1.3, temp: 30.6, humidity: 69, pm10: 21, pm25: 10, uv: 4.6 }
+            ],
+            gangwon_jeju: [
+                { name: "춘천 운전면허시험장 (강원 춘천시)", lat: 37.8981, lng: 127.7312, defaultWind: 1.2, temp: 29.1, humidity: 65, pm10: 14, pm25: 6, uv: 4.1 },
+                { name: "강릉 운전면허시험장 (강원 강릉시)", lat: 37.7801, lng: 128.9012, defaultWind: 2.6, temp: 28.5, humidity: 78, pm10: 12, pm25: 5, uv: 5.2 },
+                { name: "원주 운전면허시험장 (강원 원주시)", lat: 37.3601, lng: 127.9201, defaultWind: 1.3, temp: 29.4, humidity: 66, pm10: 15, pm25: 7, uv: 4.2 },
+                { name: "태백 운전면허시험장 (강원 태백시)", lat: 37.1425, lng: 128.9856, defaultWind: 1.8, temp: 27.8, humidity: 68, pm10: 11, pm25: 5, uv: 4.0 },
+                { name: "제주 운전면허시험장 (제주 제주시)", lat: 33.4321, lng: 126.4123, defaultWind: 3.2, temp: 28.8, humidity: 80, pm10: 11, pm25: 4, uv: 5.9 }
             ]
         };
 
@@ -582,14 +588,69 @@
             const dialCircle = document.getElementById('dial-circle-fill');
             const adviceText = document.getElementById('ai-advice-text');
 
-            badgeText.textContent = "안전";
-            badgeDot.className = "w-2 h-2 rounded-full bg-emerald-500 inline-block";
-            badge.className = "mt-1 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1";
-            barFill.className = "h-full rounded-full bg-emerald-500 gradient-bar transition-all duration-700 ease-out";
-            barFill.style.width = "25%";
-            dialCircle.className = "text-emerald-500 transition-all duration-1000 ease-out";
-            dialCircle.style.strokeDashoffset = "198";
-            adviceText.innerHTML = `기상청 공식 산식 기준 체감온도는 <strong class="text-emerald-400">${finalSensible}°C</strong>입니다. 현재 안전 단계입니다.`;
+            // 4단계 카드 하이라이트 초기화
+            const zones = ['zone-safe', 'zone-attention', 'zone-caution', 'zone-danger'];
+            zones.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.className = "bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 transition-all";
+            });
+
+            let stage = "안전";
+            let color = "emerald";
+            let textColorClass = "text-emerald-400";
+            let activeZoneId = "zone-safe";
+            let adviceMsg = "";
+            let percentage = 25;
+
+            // 체감온도 구간에 따른 단계 결정 및 색상/메시지 설정
+            if (finalSensible < 31) {
+                stage = "안전";
+                color = "emerald";
+                textColorClass = "text-emerald-400";
+                activeZoneId = "zone-safe";
+                percentage = Math.max(5, (finalSensible / 31) * 25);
+                adviceMsg = `기상청 공식 산식 기준 체감온도는 <strong class="${textColorClass}">${finalSensible}°C</strong>입니다. 현재 안전 단계입니다. 적절한 수분 섭취를 유지하세요.`;
+            } else if (finalSensible < 33) {
+                stage = "주의";
+                color = "blue";
+                textColorClass = "text-blue-400";
+                activeZoneId = "zone-attention";
+                percentage = 25 + ((finalSensible - 31) / 2) * 25;
+                adviceMsg = `기상청 공식 산식 기준 체감온도는 <strong class="${textColorClass}">${finalSensible}°C</strong>입니다. 현재 주의 단계입니다. 야외 작업 시 정기적으로 그늘에서 휴식을 취하세요.`;
+            } else if (finalSensible < 35) {
+                stage = "경고";
+                color = "amber";
+                textColorClass = "text-amber-400";
+                activeZoneId = "zone-caution";
+                percentage = 50 + ((finalSensible - 33) / 2) * 25;
+                adviceMsg = `기상청 공식 산식 기준 체감온도는 <strong class="${textColorClass}">${finalSensible}°C</strong>입니다. 현재 경고 단계입니다. 온열질환 예방을 위해 야외 활동을 줄이고 휴식을 취하세요.`;
+            } else {
+                stage = "위험";
+                color = "rose";
+                textColorClass = "text-rose-400";
+                activeZoneId = "zone-danger";
+                percentage = Math.min(100, 75 + ((finalSensible - 35) / 5) * 25);
+                adviceMsg = `기상청 공식 산식 기준 체감온도는 <strong class="${textColorClass}">${finalSensible}°C</strong>입니다. 현재 위험 단계입니다. 폭염 위험이 매우 높으니 야외 작업을 중단하고 시원한 장소로 이동하세요.`;
+            }
+
+            badgeText.textContent = stage;
+            badgeDot.className = `w-2 h-2 rounded-full bg-${color}-500 inline-block`;
+            badge.className = `mt-1 px-3 py-0.5 rounded-full bg-${color}-500/20 border border-${color}-500/40 text-${color}-400 font-bold text-xs flex items-center gap-1`;
+
+            barFill.className = `h-full rounded-full bg-${color}-500 gradient-bar transition-all duration-700 ease-out`;
+            barFill.style.width = `${percentage}%`;
+
+            dialCircle.className = `text-${color}-500 transition-all duration-1000 ease-out`;
+            const dashoffset = 263.89 * (1 - percentage / 100);
+            dialCircle.style.strokeDashoffset = dashoffset.toFixed(1);
+
+            // 해당 단계 카드 하이라이트 표시
+            const activeZone = document.getElementById(activeZoneId);
+            if (activeZone) {
+                activeZone.className = `bg-slate-950/80 border border-${color}-500/60 shadow-lg shadow-${color}-500/10 rounded-xl p-2.5 transition-all`;
+            }
+
+            adviceText.innerHTML = adviceMsg;
         }
 
         function toggleAudioBriefing() {
@@ -601,7 +662,8 @@
                 document.getElementById('tts-icon').textContent = "🔊";
                 return;
             }
-            const text = `기상청 공식 산식 기준 현재 ${currentWeatherData.locationName}의 체감온도는 ${currentWeatherData.sensibleTemp}도입니다.`;
+            const badgeText = document.getElementById('status-badge-text')?.textContent || "안전";
+            const text = `기상청 공식 산식 기준 현재 ${currentWeatherData.locationName}의 체감온도는 ${currentWeatherData.sensibleTemp}도입니다. 현재 ${badgeText} 단계입니다.`;
             speechUtterance = new SpeechSynthesisUtterance(text);
             speechUtterance.lang = 'ko-KR';
             speechUtterance.onstart = () => { isSpeaking = true; document.getElementById('tts-btn-text').textContent = "재생 중..."; };
