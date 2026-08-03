@@ -46,7 +46,6 @@
                     <h1 class="text-base sm:text-lg font-bold text-white flex items-center gap-1.5 leading-tight">
                         KoRoad 안전 알림판
                     </h1>
-                    <p class="text-[10px] sm:text-xs text-slate-400 font-medium">실시간 기상 및 대기안전 지수</p>
                 </div>
             </div>
             
@@ -78,21 +77,11 @@
 
         <!-- Location & Dropdown Controls -->
         <section class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-3.5 sm:p-4 shadow-lg space-y-2.5">
-            <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-1.5 text-xs text-slate-300 font-medium truncate">
-                    <span class="text-blue-400">📍</span>
-                    <span id="current-address" class="font-bold text-white text-sm sm:text-base truncate">
-                        GPS 위치 탐색 중...
-                    </span>
-                </div>
-                <div id="api-status-tag" class="text-[10px] sm:text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg shrink-0">
-                    📡 API 연동
-                </div>
-            </div>
-
-            <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 border-t border-slate-800/80 pt-2">
-                <span id="coord-display" class="text-slate-400">-.-, -.-</span>
-                <span id="kma-grid-display" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-bold">KMA (nx: -, ny: -)</span>
+            <div class="flex items-center gap-1.5 text-xs text-slate-300 font-medium truncate">
+                <span class="text-blue-400">📍</span>
+                <span id="current-address" class="font-bold text-white text-sm sm:text-base truncate">
+                    GPS 위치 탐색 중...
+                </span>
             </div>
 
             <!-- Mobile Touch Optimized Select Dropdowns -->
@@ -145,7 +134,7 @@
                 </div>
             </div>
 
-            <!-- Key Metrics 2-Column Grid for Mobile -->
+            <!-- Key Metrics Grid -->
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 <div class="bg-slate-950/70 rounded-xl p-3 border border-slate-800/80 flex flex-col justify-between space-y-1">
                     <span class="text-[11px] font-medium text-slate-400">🌡️ 실제 기온</span>
@@ -234,29 +223,32 @@
             </div>
         </section>
 
-        <!-- AI Guidance Section -->
-        <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-lg space-y-2.5">
-            <div class="flex items-center justify-between">
+        <!-- Safety Guidelines & Action Rules Section (단계별 안전수칙 및 행동요령) -->
+        <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3.5 sm:p-4 shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-2.5">
                 <div class="flex items-center gap-2">
-                    <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30 text-xs shrink-0">✨</div>
-                    <h3 class="text-xs sm:text-sm font-bold text-white">AI 안전 브리핑</h3>
+                    <div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center border border-blue-500/30 text-xs shrink-0">🛡️</div>
+                    <div>
+                        <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                            단계별 안전수칙 및 행동요령
+                        </h3>
+                        <p class="text-[10px] text-slate-400">체감온도 및 폭염 단계별 현장 필수 안전 지침</p>
+                    </div>
                 </div>
-                <button onclick="toggleAudioBriefing()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all active:scale-95 shrink-0 min-h-[38px]">
-                    <span id="tts-icon">🔊</span>
-                    <span id="tts-btn-text">음성 안내</span>
-                </button>
+                <div id="action-stage-badge" class="px-2.5 py-1 rounded-lg text-xs font-bold border transition-all">
+                    안전 단계
+                </div>
             </div>
 
-            <div class="bg-slate-950/80 rounded-xl p-3.5 border border-slate-800/80 text-xs sm:text-sm leading-relaxed text-slate-200">
-                <p id="ai-advice-text">
-                    기상청 공식 산식 기준 체감온도는 <strong class="text-emerald-400 font-bold">25.9°C</strong>입니다. 현재 안전 단계입니다.
-                </p>
+            <!-- Dynamic Action Items Box -->
+            <div id="action-guidelines-box" class="bg-slate-950/80 rounded-xl p-3.5 border border-slate-800/80 space-y-2 text-xs sm:text-sm leading-relaxed">
+                <!-- JavaScript will populate active safety guidelines here -->
             </div>
         </section>
 
     </div>
 
-    <!-- Single API Key Settings Modal -->
+    <!-- API Key Settings Modal -->
     <div id="api-key-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -324,6 +316,56 @@
             ]
         };
 
+        const safetyRules = {
+            "안전": {
+                badgeBg: "bg-emerald-500/10",
+                badgeBorder: "border-emerald-500/30",
+                badgeText: "text-emerald-400",
+                title: "🟢 [안전 단계] 체감온도 31℃ 미만 - 기본 안전 관리",
+                rules: [
+                    "<strong>수분 보충:</strong> 작업 및 대기 중 자율적인 수분 및 염분을 섭취합니다.",
+                    "<strong>환경 점검:</strong> 옥외 시험장 및 휴게장소의 통풍·환기 상태를 기본 점검합니다.",
+                    "<strong>자율 보호:</strong> 자외선지수 및 미세먼지 농도를 확인하고 적절한 보호구(모자, 마스크 등)를 착용합니다."
+                ]
+            },
+            "주의": {
+                badgeBg: "bg-blue-500/10",
+                badgeBorder: "border-blue-500/30",
+                badgeText: "text-blue-400",
+                title: "🔵 [주의 단계] 체감온도 31~33℃ 미만 - 온열질환 예방 수칙 준수",
+                rules: [
+                    "<strong>수분·시원한 물 비치:</strong> 옥외 작업자 및 시험 응시자를 위해 깨끗하고 시원한 음용수를 상시 공급합니다.",
+                    "<strong>휴식 시간 보장:</strong> 매 시간 10~15분 이상 그늘진 휴게장소에서 휴식을 권장합니다.",
+                    "<strong>건강 상태 상호 확인:</strong> 두통, 어지럼증, 식은땀 등 온열질환 초기 증상 유무를 서로 확인합니다.",
+                    "<strong>직사광선 차단:</strong> 야외 활동 시 모자, 자외선 차단제, 양산 등을 적극 활용합니다."
+                ]
+            },
+            "경고": {
+                badgeBg: "bg-amber-500/10",
+                badgeBorder: "border-amber-500/30",
+                badgeText: "text-amber-400",
+                title: "🟡 [경고 단계] 체감온도 33~35℃ 미만 - 옥외작업 축소 및 휴식 의무화",
+                rules: [
+                    "<strong>옥외 작업/시험 조정:</strong> 취약시간대(12시~17시) 옥외 작업 및 야외 시험의 단축 또는 조율을 검토합니다.",
+                    "<strong>휴식 의무화:</strong> 매 시간 15분 이상 냉방 장치가 가동되는 실내 휴게실 휴식을 의무 실시합니다.",
+                    "<strong>민감군 보호:</strong> 고령자, 질환자 등 온열질환 취약계층의 옥외 활동을 즉시 제한합니다.",
+                    "<strong>응급 물품 비치:</strong> 얼음주머니, 보냉장구, 이온음료 등 응급 구호 물품을 비치합니다."
+                ]
+            },
+            "위험": {
+                badgeBg: "bg-rose-500/10",
+                badgeBorder: "border-rose-500/30",
+                badgeText: "text-rose-400",
+                title: "🔴 [위험 단계] 체감온도 35℃ 이상 - 옥외작업 중단 및 긴급조치",
+                rules: [
+                    "<strong>옥외 작업 중단:</strong> 긴급 작업을 제외한 12시~17시 옥외 작업 및 야외 시험을 원칙적으로 중단합니다.",
+                    "<strong>응급 체계 가동:</strong> 온열질환자(열사병 등) 발생 즉시 119에 신고하고 환자를 시원한 그늘로 이송합니다.",
+                    "<strong>체온 저하 조치:</strong> 의복을 완화하고 시원한 물이나 얼음팩을 활용하여 체온을 즉시 낮춥니다.",
+                    "<strong>전 현장 안전 점검:</strong> 현장 안전책임자 주도하에 전 인원의 건강 상태를 긴급 점검합니다."
+                ]
+            }
+        };
+
         let currentWeatherData = {
             sensibleTemp: 25.9,
             temp: 25.9,
@@ -344,8 +386,6 @@
 
         let kmaServiceKey = localStorage.getItem('kma_service_key') || 'whIV7oO5m%2BRhIy4BFG6USPGsSzS7Zl5Jqi1%2B91H9khC%2FHmifFXLEZpCB6MOy5z4rCLWT7AqP2U%2F9yomgXX166w%3D%3D';
 
-        let speechUtterance = null;
-        let isSpeaking = false;
         let gpsTimeoutTimer = null;
         let autoRefreshTimer = null;
         let countdownSeconds = 10;
@@ -464,9 +504,7 @@
             gpsTimeoutTimer = setTimeout(() => {
                 showToast("⚠️ GPS 탐색 지연: 아래 목록에서 지역을 선택해주세요.", true);
                 const addressEl = document.getElementById('current-address');
-                const coordEl = document.getElementById('coord-display');
                 if (addressEl) addressEl.textContent = "지역 직접 선택 필요";
-                if (coordEl) coordEl.textContent = "위치 선택 안됨";
             }, 5000);
 
             if (!navigator.geolocation) {
@@ -482,8 +520,6 @@
                     clearTimeout(gpsTimeoutTimer);
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    const coordEl = document.getElementById('coord-display');
-                    if (coordEl) coordEl.textContent = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
                     fetchWeatherData(lat, lng, "현재 위치 (GPS)");
                     showToast("✅ GPS 위치 연결 완료");
                 },
@@ -517,8 +553,6 @@
             const [zone, idx] = val.split(':');
             const center = centerData[zone][idx];
             if (center) {
-                const coordEl = document.getElementById('coord-display');
-                if (coordEl) coordEl.textContent = `${center.lat.toFixed(2)}, ${center.lng.toFixed(2)}`;
                 fetchWeatherData(center.lat, center.lng, center.name, center);
             }
         }
@@ -553,9 +587,6 @@
             const grid = dfs_xy_conv("toXY", lat, lng);
             currentWeatherData.nx = grid.nx;
             currentWeatherData.ny = grid.ny;
-            
-            const gridEl = document.getElementById('kma-grid-display');
-            if (gridEl) gridEl.textContent = `KMA (nx: ${grid.nx}, ny: ${grid.ny})`;
 
             let fetchedKmaSuccess = false;
             let fetchedAirSuccess = false;
@@ -669,18 +700,6 @@
                 currentWeatherData.wind, 
                 currentWeatherData.isSummer
             );
-
-            // API 상태 업데이트
-            const apiTag = document.getElementById('api-status-tag');
-            if (apiTag) {
-                if (fetchedKmaSuccess || fetchedAirSuccess || fetchedUvSuccess) {
-                    apiTag.className = "text-[10px] sm:text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg shrink-0";
-                    apiTag.textContent = "📡 실시간 API";
-                } else {
-                    apiTag.className = "text-[10px] sm:text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded-lg shrink-0";
-                    apiTag.textContent = "⚙️ 기본 데이터";
-                }
-            }
 
             updateUI();
         }
@@ -812,54 +831,26 @@
                 currentZoneCard.style.backgroundColor = `${hexColor}22`;
             }
 
-            // AI Text Guidance
-            const aiText = document.getElementById('ai-advice-text');
-            if (aiText) {
-                aiText.innerHTML = `현재 <strong class="text-white font-bold">${currentWeatherData.locationName}</strong>의 체감온도는 <strong style="color:${hexColor}" class="font-bold">${st.toFixed(1)}°C</strong>로 <strong style="color:${hexColor}" class="font-bold">${statusText}</strong> 단계입니다. 미세먼지(${currentWeatherData.pm10}㎍/㎥) 및 자외선지수(${currentWeatherData.uv.toFixed(1)})를 고려하여 야외 근무 및 수검자 안전수칙을 준수해 주세요.`;
+            // Update Safety Guidelines & Action Protocol Block
+            const actionBadge = document.getElementById('action-stage-badge');
+            const actionBox = document.getElementById('action-guidelines-box');
+
+            if (actionBadge && actionBox && safetyRules[statusText]) {
+                const ruleData = safetyRules[statusText];
+                actionBadge.className = `px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${ruleData.badgeBg} ${ruleData.badgeBorder} ${ruleData.badgeText}`;
+                actionBadge.textContent = `${statusText} 단계`;
+
+                let html = `<div class="font-bold text-xs sm:text-sm mb-2.5 text-white">${ruleData.title}</div>`;
+                html += `<ul class="space-y-2 text-slate-300">`;
+                ruleData.rules.forEach(rule => {
+                    html += `<li class="flex items-start gap-2">
+                        <span class="text-blue-400 mt-0.5">•</span>
+                        <span>${rule}</span>
+                    </li>`;
+                });
+                html += `</ul>`;
+                actionBox.innerHTML = html;
             }
-        }
-
-        function toggleAudioBriefing() {
-            if (!('speechSynthesis' in window)) {
-                showToast("음성 브리핑(TTS)을 지원하지 않는 브라우저입니다.", true);
-                return;
-            }
-
-            if (isSpeaking) {
-                window.speechSynthesis.cancel();
-                isSpeaking = false;
-                updateTtsBtnUI(false);
-                return;
-            }
-
-            const aiTextEl = document.getElementById('ai-advice-text');
-            if (!aiTextEl) return;
-
-            const textToSpeak = `KoRoad 안전 알림판 안내입니다. ${aiTextEl.textContent.trim()}`;
-            speechUtterance = new SpeechSynthesisUtterance(textToSpeak);
-            speechUtterance.lang = 'ko-KR';
-            speechUtterance.rate = 1.0;
-
-            speechUtterance.onend = () => {
-                isSpeaking = false;
-                updateTtsBtnUI(false);
-            };
-
-            speechUtterance.onerror = () => {
-                isSpeaking = false;
-                updateTtsBtnUI(false);
-            };
-
-            window.speechSynthesis.speak(speechUtterance);
-            isSpeaking = true;
-            updateTtsBtnUI(true);
-        }
-
-        function updateTtsBtnUI(speaking) {
-            const btnText = document.getElementById('tts-btn-text');
-            const btnIcon = document.getElementById('tts-icon');
-            if (btnText) btnText.textContent = speaking ? "정지" : "음성 안내";
-            if (btnIcon) btnIcon.textContent = speaking ? "⏹️" : "🔊";
         }
     </script>
 </body>
