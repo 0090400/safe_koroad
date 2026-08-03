@@ -44,12 +44,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                 <select id="region-zone-select" onchange="onZoneChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-slate-200 outline-none">
                     <option value="">-- [1단계] 권역 선택 --</option>
-                    <option value="seoul_gyeonggi">서울 · 경기 · 인천</option>
-                    <option value="daejeon_chungcheong">대전 · 세종 · 충청</option>
-                    <option value="busan_gyeongnam">부산 · 울산 · 경남</option>
-                    <option value="daegu_gyeongbuk">대구 · 경북</option>
-                    <option value="gwangju_jeolla">광주 · 전라</option>
-                    <option value="gangwon_jeju">강원 · 제주</option>
+                    <option value="seoul_gyeonggi_incheon">1. 서울 · 경기 · 인천</option>
+                    <option value="busan_gyeongsang">2. 부산 · 경상</option>
+                    <option value="daejeon_chungcheong">3. 대전 · 충청</option>
+                    <option value="gwangju_jeolla">4. 광주 · 전라</option>
+                    <option value="gangwon_jeju">5. 강원 · 제주</option>
                 </select>
                 <select id="center-select" onchange="onCenterSelect(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-slate-200 outline-none">
                     <option value="">-- [2단계] 시험장 선택 --</option>
@@ -118,7 +117,7 @@
 
             <!-- Guidelines & Step Bars -->
             <div class="space-y-3 pt-4 border-t border-slate-800/80">
-                <!-- 단계 구분 바 (도씨 기호 포함) -->
+                <!-- 단계 구분 바 -->
                 <div class="grid grid-cols-4 gap-1 text-center text-[11px] font-bold">
                     <div id="bar-safe" class="py-1.5 rounded-lg transition-all">안전 (&lt;31°C)</div>
                     <div id="bar-caution" class="py-1.5 rounded-lg transition-all">주의 (31°C~)</div>
@@ -129,7 +128,7 @@
                 <div class="w-full h-3 bg-slate-950 rounded-full border border-slate-800 overflow-hidden relative">
                     <div id="gauge-bar-fill" class="h-full bg-emerald-500 transition-all duration-700" style="width: 0%;"></div>
                 </div>
-                <!-- 구체화된 3가지 행동요령 안내박스 -->
+                <!-- 행동요령 안내박스 -->
                 <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 space-y-2">
                     <div class="font-bold text-white flex items-center gap-1.5" id="guide-title">
                         <span>💡</span> 행동요령 및 안전수칙
@@ -146,44 +145,44 @@
         // Proj4js TM 좌표계 정의 (에어코리아 중부원점)
         proj4.defs("EPSG:2097", "+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=bessel +units=m +no_defs +towgs84=-115.80,474.99,674.11,1.16,-2.31,-1.63,6.43");
 
+        // 요청하신 5대 권역 기준 시험장 및 좌표 데이터 정리
         const centerData = {
-            seoul_gyeonggi: [
+            seoul_gyeonggi_incheon: [
                 { name: "강남 운전면허시험장", lat: 37.5082, lng: 127.0673 },
                 { name: "도봉 운전면허시험장", lat: 37.6533, lng: 127.0583 },
                 { name: "강서 운전면허시험장", lat: 37.5509, lng: 126.8118 },
                 { name: "서부 운전면허시험장", lat: 37.5710, lng: 126.8920 },
                 { name: "인천 운전면허시험장", lat: 37.4357, lng: 126.6912 },
-                { name: "안산 운전면허시험장", lat: 37.3398, lng: 126.8341 },
                 { name: "용인 운전면허시험장", lat: 37.2635, lng: 127.1243 },
+                { name: "안산 운전면허시험장", lat: 37.3398, lng: 126.8341 },
                 { name: "의정부 운전면허시험장", lat: 37.7533, lng: 127.0782 }
             ],
-            daejeon_chungcheong: [
-                { name: "대전 운전면허시험장", lat: 36.3120, lng: 127.4601 },
-                { name: "청주 운전면허시험장", lat: 36.5612, lng: 127.5582 },
-                { name: "예산 운전면허시험장", lat: 36.6781, lng: 126.8452 },
-                { name: "충주 운전면허시험장", lat: 36.9876, lng: 127.9123 }
-            ],
-            busan_gyeongnam: [
+            busan_gyeongsang: [
                 { name: "부산남부 운전면허시험장", lat: 35.1325, lng: 129.1072 },
                 { name: "부산북부 운전면허시험장", lat: 35.1873, lng: 128.9812 },
+                { name: "울산 운전면허시험장", lat: 35.5831, lng: 129.2815 },
                 { name: "마산 운전면허시험장", lat: 35.2281, lng: 128.5810 },
-                { name: "울산 운전면허시험장", lat: 35.5831, lng: 129.2815 }
-            ],
-            daegu_gyeongbuk: [
                 { name: "대구 운전면허시험장", lat: 35.8421, lng: 128.5532 },
                 { name: "포항 운전면허시험장", lat: 36.0192, lng: 129.3451 },
                 { name: "문경 운전면허시험장", lat: 36.5821, lng: 128.1923 }
             ],
+            daejeon_chungcheong: [
+                { name: "대전 운전면허시험장", lat: 36.3120, lng: 127.4601 },
+                { name: "청주 운전면허시험장", lat: 36.5612, lng: 127.5582 },
+                { name: "충주 운전면허시험장", lat: 36.9876, lng: 127.9123 },
+                { name: "예산 운전면허시험장", lat: 36.6781, lng: 126.8452 }
+            ],
             gwangju_jeolla: [
-                { name: "광주 운전면허시험장", lat: 35.2120, lng: 126.8431 },
-                { name: "전남 운전면허시험장(나주)", lat: 35.0192, lng: 126.7123 },
-                { name: "전북 운전면허시험장", lat: 35.8312, lng: 127.0812 },
-                { name: "제주 운전면허시험장", lat: 33.4512, lng: 126.5712 }
+                { name: "전남 운전면허시험장", lat: 35.0192, lng: 126.7123 },
+                { name: "광양 운전면허시험장", lat: 34.9405, lng: 127.6958 },
+                { name: "전북 운전면허시험장", lat: 35.8312, lng: 127.0812 }
             ],
             gangwon_jeju: [
                 { name: "춘천 운전면허시험장", lat: 37.8812, lng: 127.7312 },
                 { name: "강릉 운전면허시험장", lat: 37.7512, lng: 128.8712 },
-                { name: "원주 운전면허시험장", lat: 37.3412, lng: 127.9212 }
+                { name: "원주 운전면허시험장", lat: 37.3412, lng: 127.9212 },
+                { name: "태백 운전면허시험장", lat: 37.1705, lng: 128.9850 },
+                { name: "제주 운전면허시험장", lat: 33.4512, lng: 126.5712 }
             ]
         };
 
@@ -308,7 +307,6 @@
             document.getElementById('pm10-val').textContent = `${air.pm10} ㎍/㎥`;
             document.getElementById('pm25-val').textContent = `${air.pm25} ㎍/㎥`;
 
-            // 1단계: 모든 단계바 스타일 초기화 (기본 어두운 스타일)
             const bars = {
                 safe: document.getElementById('bar-safe'),
                 caution: document.getElementById('bar-caution'),
@@ -323,7 +321,6 @@
                 b.style.color = "";
             });
 
-            // 2단계: 체감온도 기준에 따른 상태 값 및 가이드 세팅
             let color = "#10b981", text = "안전", pct = 25, activeKey = 'safe';
             let guideTitle = "✅ 안전 단계 (일상적인 활동 가능)";
             let guideItems = [
@@ -358,14 +355,12 @@
                 ];
             }
 
-            // 3단계: 현재 체감온도 구간에 해당하는 딱 하나의 바만 정밀 하이라이트 적용
             const activeBar = bars[activeKey];
             activeBar.className = "py-1.5 rounded-lg border transition-all font-extrabold";
             activeBar.style.backgroundColor = color + '22';
             activeBar.style.borderColor = color;
             activeBar.style.color = color;
 
-            // 4단계: 다이얼, 뱃지, 게이지, 가이드라인 반영
             document.getElementById('sensible-temp-val').style.color = color;
             document.getElementById('status-badge-text').textContent = text;
             document.getElementById('status-badge').style.borderColor = color;
@@ -376,7 +371,6 @@
             document.getElementById('gauge-bar-fill').style.backgroundColor = color;
             document.getElementById('gauge-bar-fill').style.width = `${pct}%`;
 
-            // 행동요령 리스트 업데이트
             document.getElementById('guide-title').innerHTML = `<span>💡</span> ${guideTitle}`;
             const listEl = document.getElementById('guide-list');
             listEl.innerHTML = '';
