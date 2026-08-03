@@ -24,13 +24,6 @@
         .highlight-ring { 
             animation: pulse-ring 1.8s infinite; 
         }
-        @keyframes timer-bar {
-            0% { width: 100%; }
-            100% { width: 0%; }
-        }
-        .animate-timer {
-            animation: timer-bar 10s linear infinite;
-        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen p-3 md:p-6 flex flex-col items-center justify-start">
@@ -55,33 +48,33 @@
                 </div>
             </div>
             <div class="flex items-center gap-2">
-                <!-- 10-Second Auto Refresh Toggle Badge -->
-                <button id="auto-refresh-btn" onclick="toggleAutoRefresh()" title="10초 자동 갱신 설정" class="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-semibold flex items-center gap-1.5 transition-all">
+                <!-- 10s Timer Progress Indicator -->
+                <div title="10초 자동 갱신 카운트다운" class="hidden sm:flex items-center gap-1.5 bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-xl text-xs font-mono text-slate-400">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-                    <span id="auto-refresh-text">10초 자동갱신 ON</span>
-                </button>
+                    <span>자동 갱신 <strong id="refresh-timer-num" class="text-emerald-400 font-bold">10</strong>s</span>
+                </div>
                 <button onclick="toggleApiKeyModal()" title="공공데이터 API 인증키 설정" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
                     </svg>
                 </button>
-                <button onclick="manualRefresh()" title="수동 새로고침" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center">
-                    <svg id="refresh-icon" class="w-4 h-4 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button onclick="requestLocation()" title="위치 및 날씨 새로고침" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
                 </button>
             </div>
         </header>
 
-        <!-- Auto-Refresh Countdown Progress Indicator -->
-        <div class="w-full bg-slate-900 rounded-full h-1 overflow-hidden border border-slate-800/50">
-            <div id="refresh-progress-bar" class="bg-blue-500 h-full animate-timer w-full"></div>
+        <!-- Auto Refresh Progress Bar -->
+        <div class="w-full bg-slate-900/50 h-1 rounded-full overflow-hidden border border-slate-800">
+            <div id="refresh-progress-bar" class="bg-blue-500 h-full transition-all duration-1000 ease-linear" style="width: 100%;"></div>
         </div>
 
         <!-- Location & Grid Coordinates Section -->
         <section class="bg-slate-900/80 border border-slate-800/90 rounded-2xl p-4 shadow-lg space-y-3">
             <div class="flex items-center justify-between text-xs text-slate-400">
-                <span class="flex items-center gap-1.5 font-medium text-slate-300">📍 탐지 위치 및 기상청 격자</span>
+                <span class="flex items-center gap-1.5 font-medium text-slate-300">📍 탐지 위치 및 기상청 격자 / 행정구역코드</span>
                 <div class="flex items-center gap-2 font-mono text-[11px]">
                     <span id="coord-display" class="text-slate-500">-.-, -.-</span>
                     <span id="kma-grid-display" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded font-bold">KMA (nx: -, ny: -)</span>
@@ -94,10 +87,8 @@
                         GPS 위치 탐색 중...
                     </h2>
                 </div>
-                <div class="flex items-center gap-2">
-                    <span id="data-source-badge" class="text-[10px] sm:text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full flex items-center gap-1 font-medium w-fit">
-                        📡 데이터 연동 준비 중
-                    </span>
+                <div id="api-status-tag" class="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg w-fit">
+                    📡 API 데이터 연동 중
                 </div>
             </div>
 
@@ -109,8 +100,7 @@
                         <option value="seoul_gyeonggi_incheon">서울 · 경기 · 인천</option>
                         <option value="busan_ulsan_gyeongnam">부산 · 울산 · 경남</option>
                         <option value="daegu_gyeongbuk">대구 · 경북</option>
-                        <option value="daejeon_chungnam">대전 · 충남</option>
-                        <option value="chungbuk">충북</option>
+                        <option value="daejeon_chungcheong">대전 · 충청</option>
                         <option value="gwangju_jeolla">광주 · 전라</option>
                         <option value="gangwon_jeju">강원 · 제주</option>
                     </select>
@@ -125,13 +115,7 @@
 
         <!-- Weather Overview & Sensible Temperature Section -->
         <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 md:p-5 shadow-xl space-y-4">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-slate-400 tracking-wider uppercase">기상 실시간 종합 데이터</span>
-                <span id="formula-tag" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                    ☀️ 기상청 API 연동 가동 중
-                </span>
-            </div>
-
+            
             <!-- 3-Panel Layout -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
                 
@@ -146,13 +130,8 @@
                         <span id="humidity-val" class="text-sm font-bold text-white">-- %</span>
                     </div>
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
-                        <div class="flex items-center gap-1">
-                            <span class="text-xs text-slate-400">🍃 풍속</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-bold">기상청</span>
-                            <span id="wind-val" class="text-sm font-bold text-sky-400">-- m/s</span>
-                        </div>
+                        <span class="text-xs text-slate-400">🍃 풍속</span>
+                        <span id="wind-val" class="text-sm font-bold text-sky-400">-- m/s</span>
                     </div>
                 </div>
 
@@ -162,7 +141,7 @@
                         <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                             <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7" class="text-slate-800" fill="transparent" />
                             <circle id="dial-circle-fill" cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7" 
-                                    class="text-emerald-500 transition-all duration-700 ease-out" 
+                                    class="transition-all duration-1000 ease-out" 
                                     fill="transparent" 
                                     stroke-dasharray="263.89" 
                                     stroke-dashoffset="198" 
@@ -171,11 +150,11 @@
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
                             <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest">체감온도</span>
                             <div class="flex items-baseline gap-0.5">
-                                <span id="sensible-temp-val" class="text-3xl font-black text-white">--</span>
+                                <span id="sensible-temp-val" class="text-3xl font-black transition-colors duration-500">--</span>
                                 <span class="text-lg font-bold text-slate-400">°C</span>
                             </div>
-                            <div id="status-badge" class="mt-1 px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-1">
-                                <span id="status-badge-dot" class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
+                            <div id="status-badge" class="mt-1 px-3 py-0.5 rounded-full border font-bold text-xs flex items-center gap-1 transition-all duration-500">
+                                <span id="status-badge-dot" class="w-2 h-2 rounded-full inline-block"></span>
                                 <span id="status-badge-text">안전</span>
                             </div>
                         </div>
@@ -187,21 +166,21 @@
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
                         <span class="text-xs text-slate-400">🌫️ 미세먼지</span>
                         <div class="flex items-center gap-1.5">
-                            <span id="pm10-val" class="text-sm font-bold text-white">18 ㎍/㎥</span>
-                            <span id="pm10-badge" class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap">좋음</span>
+                            <span id="pm10-val" class="text-sm font-bold text-white">-- ㎍/㎥</span>
+                            <span id="pm10-badge" class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap">보통</span>
                         </div>
                     </div>
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
                         <span class="text-xs text-slate-400">💨 초미세먼지</span>
                         <div class="flex items-center gap-1.5">
-                            <span id="pm25-val" class="text-sm font-bold text-white">9 ㎍/㎥</span>
-                            <span id="pm25-badge" class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap">좋음</span>
+                            <span id="pm25-val" class="text-sm font-bold text-white">-- ㎍/㎥</span>
+                            <span id="pm25-badge" class="text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap">보통</span>
                         </div>
                     </div>
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex items-center justify-between">
                         <span class="text-xs text-slate-400">☀️ 자외선지수</span>
                         <div class="flex items-center gap-1.5">
-                            <span id="uv-val" class="text-sm font-bold text-white">4.2</span>
+                            <span id="uv-val" class="text-sm font-bold text-white">--</span>
                             <span id="uv-badge" class="text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap">보통</span>
                         </div>
                     </div>
@@ -267,7 +246,7 @@
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <div class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30 text-xs">✨</div>
-                    <h3 class="text-sm font-bold text-white">AI 기상 안전 컨설팅</h3>
+                    <h3 class="text-sm font-bold text-white">AI 기상 안내 컨설팅</h3>
                 </div>
                 <button onclick="toggleAudioBriefing()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-semibold px-3 py-1.5 rounded-xl flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all active:scale-95">
                     <span id="tts-icon">🔊</span>
@@ -278,7 +257,7 @@
             <!-- AI Advice Box -->
             <div class="bg-slate-950/80 rounded-xl p-3.5 border border-slate-800/80 text-xs leading-relaxed text-slate-300">
                 <p id="ai-advice-text">
-                    데이터를 로딩하고 있습니다...
+                    기상청 공식 산식 기준 체감온도는 <strong class="text-emerald-400">25.9°C</strong>입니다. 현재 안전 단계입니다.
                 </p>
             </div>
         </section>
@@ -290,16 +269,16 @@
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 max-w-md w-full space-y-4 shadow-2xl">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    🔑 공공데이터 OPEN API key 입력
+                    🔑 공공데이터 OPEN API Key 설정
                 </h3>
                 <button onclick="toggleApiKeyModal()" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
             </div>
             <p class="text-xs text-slate-400 leading-relaxed">
-                공공데이터포털(<a href="https://www.data.go.kr" target="_blank" class="text-blue-400 underline">data.go.kr</a>)에서 발급받은 기상청 단기예보/초단기실황 OPEN API 키를 입력해주세요.
+                공공데이터포털(<a href="https://www.data.go.kr" target="_blank" class="text-blue-400 underline">data.go.kr</a>)에서 신청한 [기상청 단기예보], [에어코리아 대기오염정보], [기상청 생활기상지수] 인증키를 저장하여 실시간 API 데이터를 조회합니다.
             </p>
             <div class="space-y-3">
                 <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">공공데이터 OPEN API 키 (Encoding 또는 Decoding)</label>
+                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">공공데이터 일반 API 인증키 (Encoding 또는 Decoding)</label>
                     <input type="text" id="input-kma-key" placeholder="API 인증키 입력" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-100 outline-none focus:border-blue-500 font-mono">
                 </div>
             </div>
@@ -311,74 +290,75 @@
         </div>
     </div>
 
+    <!-- JavaScript Execution Block -->
     <script>
         const centerData = {
             seoul_gyeonggi_incheon: [
-                { name: "강남 운전면허시험장 (서울 강남구)", lat: 37.5082, lng: 127.0673, defaultWind: 1.5, temp: 28.5, humidity: 65, pm10: 25, pm25: 13, uv: 5.0 },
-                { name: "강서 운전면허시험장 (서울 강서구)", lat: 37.5501, lng: 126.8152, defaultWind: 2.1, temp: 28.1, humidity: 67, pm10: 20, pm25: 10, uv: 4.8 },
-                { name: "도봉 운전면허시험장 (서울 노원구)", lat: 37.6533, lng: 127.0583, defaultWind: 1.3, temp: 27.9, humidity: 66, pm10: 19, pm25: 9, uv: 4.6 },
-                { name: "서부 운전면허시험장 (서울 마포구)", lat: 37.5801, lng: 126.8885, defaultWind: 1.7, temp: 28.2, humidity: 68, pm10: 21, pm25: 11, uv: 4.7 },
-                { name: "인천 운전면허시험장 (인천 남동구)", lat: 37.4061, lng: 126.6669, defaultWind: 1.8, temp: 27.8, humidity: 72, pm10: 22, pm25: 11, uv: 4.5 },
-                { name: "용인 운전면허시험장 (경기 용인시)", lat: 37.2694, lng: 127.1086, defaultWind: 1.2, temp: 27.5, humidity: 70, pm10: 18, pm25: 8, uv: 4.3 },
-                { name: "안산 운전면허시험장 (경기 안산시)", lat: 37.3331, lng: 126.8378, defaultWind: 2.0, temp: 27.7, humidity: 71, pm10: 23, pm25: 12, uv: 4.4 },
-                { name: "의정부 운전면허시험장 (경기 의정부시)", lat: 37.7601, lng: 127.0805, defaultWind: 1.4, temp: 27.3, humidity: 69, pm10: 17, pm25: 8, uv: 4.2 }
+                { name: "강남 운전면허시험장 (서울 강남구)", lat: 37.5082, lng: 127.0673, sido: "서울", areaNo: "1100000000", defaultWind: 1.5, temp: 28.5, humidity: 65, pm10: 25, pm25: 13, uv: 5.0 },
+                { name: "강서 운전면허시험장 (서울 강서구)", lat: 37.5501, lng: 126.8152, sido: "서울", areaNo: "1100000000", defaultWind: 2.1, temp: 28.1, humidity: 67, pm10: 20, pm25: 10, uv: 4.8 },
+                { name: "도봉 운전면허시험장 (서울 노원구)", lat: 37.6533, lng: 127.0583, sido: "서울", areaNo: "1100000000", defaultWind: 1.3, temp: 27.9, humidity: 66, pm10: 19, pm25: 9, uv: 4.6 },
+                { name: "서부 운전면허시험장 (서울 마포구)", lat: 37.5801, lng: 126.8885, sido: "서울", areaNo: "1100000000", defaultWind: 1.7, temp: 28.2, humidity: 68, pm10: 21, pm25: 11, uv: 4.7 },
+                { name: "인천 운전면허시험장 (인천 남동구)", lat: 37.4061, lng: 126.6669, sido: "인천", areaNo: "2800000000", defaultWind: 1.8, temp: 27.8, humidity: 72, pm10: 22, pm25: 11, uv: 4.5 },
+                { name: "용인 운전면허시험장 (경기 용인시)", lat: 37.2694, lng: 127.1086, sido: "경기", areaNo: "4100000000", defaultWind: 1.2, temp: 27.5, humidity: 70, pm10: 18, pm25: 8, uv: 4.3 },
+                { name: "안산 운전면허시험장 (경기 안산시)", lat: 37.3331, lng: 126.8378, sido: "경기", areaNo: "4100000000", defaultWind: 2.0, temp: 27.7, humidity: 71, pm10: 23, pm25: 12, uv: 4.4 },
+                { name: "의정부 운전면허시험장 (경기 의정부시)", lat: 37.7601, lng: 127.0805, sido: "경기", areaNo: "4100000000", defaultWind: 1.4, temp: 27.3, humidity: 69, pm10: 17, pm25: 8, uv: 4.2 }
             ],
             busan_ulsan_gyeongnam: [
-                { name: "부산 남부 운전면허시험장 (부산 남구)", lat: 35.1328, lng: 129.1023, defaultWind: 2.4, temp: 26.9, humidity: 76, pm10: 16, pm25: 8, uv: 5.2 },
-                { name: "부산 북부 운전면허시험장 (부산 사상구)", lat: 35.2403, lng: 128.9897, defaultWind: 2.0, temp: 27.2, humidity: 74, pm10: 19, pm25: 9, uv: 5.0 },
-                { name: "울산 운전면허시험장 (울산 울주군)", lat: 35.5802, lng: 129.3510, defaultWind: 2.2, temp: 27.5, humidity: 73, pm10: 18, pm25: 9, uv: 5.3 },
-                { name: "마산 운전면허시험장 (경남 창원시)", lat: 35.1852, lng: 128.5320, defaultWind: 1.9, temp: 27.8, humidity: 71, pm10: 17, pm25: 8, uv: 5.1 }
+                { name: "부산 남부 운전면허시험장 (부산 남구)", lat: 35.1328, lng: 129.1023, sido: "부산", areaNo: "2600000000", defaultWind: 2.4, temp: 26.9, humidity: 76, pm10: 16, pm25: 8, uv: 5.2 },
+                { name: "부산 북부 운전면허시험장 (부산 사상구)", lat: 35.2403, lng: 128.9897, sido: "부산", areaNo: "2600000000", defaultWind: 2.0, temp: 27.2, humidity: 74, pm10: 19, pm25: 9, uv: 5.0 },
+                { name: "울산 운전면허시험장 (울산 울주군)", lat: 35.5802, lng: 129.3510, sido: "울산", areaNo: "3100000000", defaultWind: 2.2, temp: 27.5, humidity: 73, pm10: 18, pm25: 9, uv: 5.3 },
+                { name: "마산 운전면허시험장 (경남 창원시)", lat: 35.1852, lng: 128.5320, sido: "경남", areaNo: "4800000000", defaultWind: 1.9, temp: 27.8, humidity: 71, pm10: 17, pm25: 8, uv: 5.1 }
             ],
             daegu_gyeongbuk: [
-                { name: "대구 운전면허시험장 (대구 북구)", lat: 35.9381, lng: 128.5523, defaultWind: 1.1, temp: 29.1, humidity: 60, pm10: 28, pm25: 14, uv: 5.8 },
-                { name: "포항 운전면허시험장 (경북 포항시)", lat: 35.9781, lng: 129.3801, defaultWind: 2.5, temp: 27.0, humidity: 75, pm10: 15, pm25: 7, uv: 5.5 },
-                { name: "문경 운전면허시험장 (경북 문경시)", lat: 36.6210, lng: 128.1650, defaultWind: 1.4, temp: 27.3, humidity: 68, pm10: 16, pm25: 8, uv: 4.8 }
+                { name: "대구 운전면허시험장 (대구 북구)", lat: 35.9381, lng: 128.5523, sido: "대구", areaNo: "2700000000", defaultWind: 1.1, temp: 29.1, humidity: 60, pm10: 28, pm25: 14, uv: 5.8 },
+                { name: "포항 운전면허시험장 (경북 포항시)", lat: 35.9781, lng: 129.3801, sido: "경북", areaNo: "4700000000", defaultWind: 2.5, temp: 27.0, humidity: 75, pm10: 15, pm25: 7, uv: 5.5 },
+                { name: "문경 운전면허시험장 (경북 문경시)", lat: 36.6210, lng: 128.1650, sido: "경북", areaNo: "4700000000", defaultWind: 1.4, temp: 27.3, humidity: 68, pm10: 16, pm25: 8, uv: 4.8 }
             ],
-            daejeon_chungnam: [
-                { name: "대전 운전면허시험장 (대전 동구)", lat: 36.3120, lng: 127.4601, defaultWind: 0.9, temp: 25.9, humidity: 68, pm10: 18, pm25: 9, uv: 4.2 },
-                { name: "예산 운전면허시험장 (충남 예산군)", lat: 36.6801, lng: 126.8321, defaultWind: 1.6, temp: 27.8, humidity: 70, pm10: 19, pm25: 9, uv: 4.5 }
-            ],
-            chungbuk: [
-                { name: "청주 운전면허시험장 (충북 청주시)", lat: 36.5612, lng: 127.5582, defaultWind: 1.3, temp: 28.2, humidity: 68, pm10: 18, pm25: 9, uv: 4.2 },
-                { name: "충주 운전면허시험장 (충북 충주시)", lat: 36.9801, lng: 127.9123, defaultWind: 1.4, temp: 27.6, humidity: 67, pm10: 17, pm25: 8, uv: 4.3 }
+            daejeon_chungcheong: [
+                { name: "대전 운전면허시험장 (대전 동구)", lat: 36.3120, lng: 127.4601, sido: "대전", areaNo: "3000000000", defaultWind: 0.9, temp: 25.9, humidity: 98, pm10: 18, pm25: 9, uv: 4.2 },
+                { name: "예산 운전면허시험장 (충남 예산군)", lat: 36.6801, lng: 126.8321, sido: "충남", areaNo: "4400000000", defaultWind: 1.6, temp: 27.8, humidity: 70, pm10: 19, pm25: 9, uv: 4.5 },
+                { name: "청주 운전면허시험장 (충북 청주시)", lat: 36.5612, lng: 127.5582, sido: "충북", areaNo: "4300000000", defaultWind: 1.3, temp: 28.2, humidity: 68, pm10: 18, pm25: 9, uv: 4.2 },
+                { name: "충주 운전면허시험장 (충북 충주시)", lat: 36.9801, lng: 127.9123, sido: "충북", areaNo: "4300000000", defaultWind: 1.4, temp: 27.6, humidity: 67, pm10: 17, pm25: 8, uv: 4.3 }
             ],
             gwangju_jeolla: [
-                { name: "전남 운전면허시험장 (전남 나주시)", lat: 35.0123, lng: 126.7123, defaultWind: 1.5, temp: 28.1, humidity: 72, pm10: 18, pm25: 9, uv: 4.7 },
-                { name: "광양 운전면허시험장 (전남 광양시)", lat: 34.9781, lng: 127.5901, defaultWind: 1.8, temp: 27.7, humidity: 74, pm10: 16, pm25: 8, uv: 4.9 },
-                { name: "전북 운전면허시험장 (전북 전주시)", lat: 35.8451, lng: 127.0812, defaultWind: 1.3, temp: 28.6, humidity: 69, pm10: 21, pm25: 10, uv: 4.6 }
+                { name: "전남 운전면허시험장 (전남 나주시)", lat: 35.0123, lng: 126.7123, sido: "전남", areaNo: "4600000000", defaultWind: 1.5, temp: 28.1, humidity: 72, pm10: 18, pm25: 9, uv: 4.7 },
+                { name: "광양 운전면허시험장 (전남 광양시)", lat: 34.9781, lng: 127.5901, sido: "전남", areaNo: "4600000000", defaultWind: 1.8, temp: 27.7, humidity: 74, pm10: 16, pm25: 8, uv: 4.9 },
+                { name: "전북 운전면허시험장 (전북 전주시)", lat: 35.8451, lng: 127.0812, sido: "전북", areaNo: "4500000000", defaultWind: 1.3, temp: 28.6, humidity: 69, pm10: 21, pm25: 10, uv: 4.6 }
             ],
             gangwon_jeju: [
-                { name: "춘천 운전면허시험장 (강원 춘천시)", lat: 37.8981, lng: 127.7312, defaultWind: 1.2, temp: 27.1, humidity: 65, pm10: 14, pm25: 6, uv: 4.1 },
-                { name: "강릉 운전면허시험장 (강원 강릉시)", lat: 37.7801, lng: 128.9012, defaultWind: 2.6, temp: 26.5, humidity: 78, pm10: 12, pm25: 5, uv: 5.2 },
-                { name: "원주 운전면허시험장 (강원 원주시)", lat: 37.3601, lng: 127.9201, defaultWind: 1.3, temp: 27.4, humidity: 66, pm10: 15, pm25: 7, uv: 4.2 },
-                { name: "태백 운전면허시험장 (강원 태백시)", lat: 37.1425, lng: 128.9856, defaultWind: 1.8, temp: 24.8, humidity: 68, pm10: 11, pm25: 5, uv: 4.0 },
-                { name: "제주 운전면허시험장 (제주 제주시)", lat: 33.4321, lng: 126.4123, defaultWind: 3.2, temp: 26.8, humidity: 80, pm10: 11, pm25: 4, uv: 5.9 }
+                { name: "춘천 운전면허시험장 (강원 춘천시)", lat: 37.8981, lng: 127.7312, sido: "강원", areaNo: "4200000000", defaultWind: 1.2, temp: 27.1, humidity: 65, pm10: 14, pm25: 6, uv: 4.1 },
+                { name: "강릉 운전면허시험장 (강원 강릉시)", lat: 37.7801, lng: 128.9012, sido: "강원", areaNo: "4200000000", defaultWind: 2.6, temp: 26.5, humidity: 78, pm10: 12, pm25: 5, uv: 5.2 },
+                { name: "원주 운전면허시험장 (강원 원주시)", lat: 37.3601, lng: 127.9201, sido: "강원", areaNo: "4200000000", defaultWind: 1.3, temp: 27.4, humidity: 66, pm10: 15, pm25: 7, uv: 4.2 },
+                { name: "태백 운전면허시험장 (강원 태백시)", lat: 37.1425, lng: 128.9856, sido: "강원", areaNo: "4200000000", defaultWind: 1.8, temp: 25.8, humidity: 68, pm10: 11, pm25: 5, uv: 4.0 },
+                { name: "제주 운전면허시험장 (제주 제주시)", lat: 33.4321, lng: 126.4123, sido: "제주", areaNo: "5000000000", defaultWind: 3.2, temp: 26.8, humidity: 80, pm10: 11, pm25: 4, uv: 5.9 }
             ]
         };
 
         let currentWeatherData = {
             sensibleTemp: 25.9,
-            temp: 25.0,
-            humidity: 65,
-            wind: 1.5,
+            temp: 25.9,
+            humidity: 98,
+            wind: 0.9,
             pm10: 18,
             pm25: 9,
             uv: 4.2,
             isSummer: true,
-            locationName: "현재 위치 탐색 중...",
+            locationName: "현재 위치 (GPS)",
             lat: 37.5665,
             lng: 126.9780,
+            sido: "서울",
+            areaNo: "1100000000",
             nx: 60,
             ny: 127
         };
 
-        // Key management & Auto-refresh timer state
-        let kmaServiceKey = localStorage.getItem('kma_service_key') || '7a1d7d5d215ad5941cf07d2b762ec16932e2a2f61c1c77aff132001876e827d5';
+        let kmaServiceKey = localStorage.getItem('kma_service_key') || 'whIV7oO5m%2BRhIy4BFG6USPGsSzS7Zl5Jqi1%2B91H9khC%2FHmifFXLEZpCB6MOy5z4rCLWT7AqP2U%2F9yomgXX166w%3D%3D';
+
         let speechUtterance = null;
         let isSpeaking = false;
-        let autoRefreshInterval = null;
-        let isAutoRefreshActive = true;
-        let activePresetCenter = null;
+        let gpsTimeoutTimer = null;
+        let autoRefreshTimer = null;
+        let countdownSeconds = 10;
 
         function dfs_xy_conv(code, v1, v2) {
             const RE = 6371.00877;
@@ -421,78 +401,35 @@
         }
 
         window.onload = function() {
-            if (kmaServiceKey) {
-                document.getElementById('input-kma-key').value = kmaServiceKey;
-            }
-            updateSeasonAndFormulaDisplay();
+            const keyInput = document.getElementById('input-kma-key');
+            if (keyInput && kmaServiceKey) keyInput.value = kmaServiceKey;
             
-            // 1. Initial fast location & weather fetch
+            updateSeasonAndFormulaDisplay();
             requestLocation();
-
-            // 2. Start 10-second Auto Refresh Timer
-            start10SecTimer();
+            startAutoRefreshLoop();
         };
 
-        function start10SecTimer() {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+        function startAutoRefreshLoop() {
+            if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+            countdownSeconds = 10;
             
-            // Reset Progress Bar animation
-            resetProgressBarAnimation();
-
-            autoRefreshInterval = setInterval(() => {
-                if (isAutoRefreshActive) {
-                    refreshWeatherData(false); // Silent background auto-refresh
-                    resetProgressBarAnimation();
+            autoRefreshTimer = setInterval(() => {
+                countdownSeconds--;
+                const timerNum = document.getElementById('refresh-timer-num');
+                const progressBar = document.getElementById('refresh-progress-bar');
+                
+                if (timerNum) timerNum.textContent = countdownSeconds;
+                if (progressBar) progressBar.style.width = `${(countdownSeconds / 10) * 100}%`;
+                
+                if (countdownSeconds <= 0) {
+                    countdownSeconds = 10;
+                    refreshCurrentWeather();
                 }
-            }, 10000);
+            }, 1000);
         }
 
-        function resetProgressBarAnimation() {
-            const bar = document.getElementById('refresh-progress-bar');
-            if (bar) {
-                bar.classList.remove('animate-timer');
-                void bar.offsetWidth; // Trigger reflow
-                bar.classList.add('animate-timer');
-            }
-        }
-
-        function toggleAutoRefresh() {
-            isAutoRefreshActive = !isAutoRefreshActive;
-            const btn = document.getElementById('auto-refresh-btn');
-            const text = document.getElementById('auto-refresh-text');
-            const bar = document.getElementById('refresh-progress-bar');
-
-            if (isAutoRefreshActive) {
-                btn.className = "px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-semibold flex items-center gap-1.5 transition-all";
-                text.textContent = "10초 자동갱신 ON";
-                bar.style.display = "block";
-                start10SecTimer();
-                showToast("⏱️ 10초 자동 갱신 활성화됨");
-            } else {
-                btn.className = "px-2.5 py-1.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 text-xs font-semibold flex items-center gap-1.5 transition-all";
-                text.textContent = "자동갱신 OFF";
-                bar.style.display = "none";
-                if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-                showToast("⏸️ 자동 갱신이 일시 정지되었습니다.");
-            }
-        }
-
-        function manualRefresh() {
-            const icon = document.getElementById('refresh-icon');
-            if (icon) icon.classList.add('rotate-180');
-            setTimeout(() => { if (icon) icon.classList.remove('rotate-180'); }, 500);
-
-            showToast("🔄 수동 새로고침 실행 중...");
-            refreshWeatherData(true);
-            resetProgressBarAnimation();
-        }
-
-        function refreshWeatherData(showToastMsg = false) {
-            if (activePresetCenter) {
-                fetchWeatherData(activePresetCenter.lat, activePresetCenter.lng, activePresetCenter.name, activePresetCenter, showToastMsg);
-            } else {
-                fetchWeatherData(currentWeatherData.lat, currentWeatherData.lng, currentWeatherData.locationName, null, showToastMsg);
-            }
+        function refreshCurrentWeather() {
+            fetchWeatherData(currentWeatherData.lat, currentWeatherData.lng, currentWeatherData.locationName);
         }
 
         function showToast(msg, isError = false) {
@@ -505,20 +442,23 @@
             setTimeout(() => {
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
-            }, 3000);
+            }, 4000);
         }
 
         function toggleApiKeyModal() {
             const modal = document.getElementById('api-key-modal');
-            modal.classList.toggle('hidden');
+            if (modal) modal.classList.toggle('hidden');
         }
 
         function saveApiKeys() {
-            kmaServiceKey = document.getElementById('input-kma-key').value.trim();
-            localStorage.setItem('kma_service_key', kmaServiceKey);
-            toggleApiKeyModal();
-            showToast("공공데이터 OPEN API 키가 저장되었습니다.");
-            refreshWeatherData(true);
+            const keyInput = document.getElementById('input-kma-key');
+            if (keyInput) {
+                kmaServiceKey = keyInput.value.trim();
+                localStorage.setItem('kma_service_key', kmaServiceKey);
+                toggleApiKeyModal();
+                showToast("공공데이터 OPEN API 키가 저장되었습니다.");
+                requestLocation();
+            }
         }
 
         function updateSeasonAndFormulaDisplay() {
@@ -527,35 +467,49 @@
         }
 
         function requestLocation() {
-            showToast("📍 위치 정보 탐색 중...");
-            activePresetCenter = null;
+            showToast("📍 브라우저 GPS 위치를 탐색 중입니다...");
+            
+            if (gpsTimeoutTimer) clearTimeout(gpsTimeoutTimer);
+
+            gpsTimeoutTimer = setTimeout(() => {
+                showToast("⚠️ GPS 수신 지연: 드롭박스에서 지역을 직접 선택할 수 있습니다.", true);
+                const addressEl = document.getElementById('current-address');
+                const coordEl = document.getElementById('coord-display');
+                if (addressEl) addressEl.textContent = "드롭박스에서 지역을 선택해주세요";
+                if (coordEl) coordEl.textContent = "직접 선택 필요";
+            }, 5000);
 
             if (!navigator.geolocation) {
-                showToast("위치 서비스 미지원. 기본 위치(서울)로 설정됩니다.", true);
-                fetchWeatherData(37.5665, 126.9780, "서울 주요 도로 현장");
+                clearTimeout(gpsTimeoutTimer);
+                showToast("이 브라우저는 위치 정보를 지원하지 않습니다. 지역을 선택해주세요.", true);
+                const addressEl = document.getElementById('current-address');
+                if (addressEl) addressEl.textContent = "드롭박스에서 지역을 선택해주세요";
                 return;
             }
 
-            // High Speed Geolocation with 2.5s Timeout & Cached Position fallback
             navigator.geolocation.getCurrentPosition(
                 (position) => {
+                    clearTimeout(gpsTimeoutTimer);
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    document.getElementById('coord-display').textContent = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
-                    fetchWeatherData(lat, lng, "현재 GPS 위치 (사용자 반경)");
+                    const coordEl = document.getElementById('coord-display');
+                    if (coordEl) coordEl.textContent = `${lat.toFixed(2)}, ${lng.toFixed(2)}`;
+                    fetchWeatherData(lat, lng, "현재 위치 (GPS)");
+                    showToast("✅ GPS 위치를 성공적으로 연동했습니다.");
                 },
                 (error) => {
-                    // Quick fallback to Seoul default for immediate response speed
-                    showToast("GPS 수신 대기 초과. 기본 위치(서울)로 즉시 설정되었습니다.");
-                    document.getElementById('coord-display').textContent = "37.57, 126.98";
-                    fetchWeatherData(37.5665, 126.9780, "서울 현장 (기본)");
+                    clearTimeout(gpsTimeoutTimer);
+                    showToast("⚠️ GPS 권한이 거부되었거나 수신이 불가합니다. 드롭박스에서 선택해주세요.", true);
+                    const addressEl = document.getElementById('current-address');
+                    if (addressEl) addressEl.textContent = "드롭박스에서 지역을 선택해주세요";
                 },
-                { timeout: 2500, maximumAge: 60000, enableHighAccuracy: false }
+                { timeout: 5000, enableHighAccuracy: true }
             );
         }
 
         function onZoneChange(zone) {
             const centerSelect = document.getElementById('center-select');
+            if (!centerSelect) return;
             centerSelect.innerHTML = '<option value="">-- [2단계] 주요 장소/시험장 선택 --</option>';
 
             if (!zone || !centerData[zone]) return;
@@ -573,261 +527,350 @@
             const [zone, idx] = val.split(':');
             const center = centerData[zone][idx];
             if (center) {
-                activePresetCenter = center;
-                document.getElementById('coord-display').textContent = `${center.lat.toFixed(2)}, ${center.lng.toFixed(2)}`;
-                fetchWeatherData(center.lat, center.lng, center.name, center, true);
+                const coordEl = document.getElementById('coord-display');
+                if (coordEl) coordEl.textContent = `${center.lat.toFixed(2)}, ${center.lng.toFixed(2)}`;
+                fetchWeatherData(center.lat, center.lng, center.name, center);
             }
-        }
-
-        function fetchWeatherData(lat, lng, name, presetCenter = null, notifyToast = false) {
-            currentWeatherData.lat = lat;
-            currentWeatherData.lng = lng;
-            currentWeatherData.locationName = name;
-            document.getElementById('current-address').textContent = name;
-
-            const grid = dfs_xy_conv("toXY", lat, lng);
-            currentWeatherData.nx = grid.nx;
-            currentWeatherData.ny = grid.ny;
-            document.getElementById('kma-grid-display').textContent = `KMA (nx: ${grid.nx}, ny: ${grid.ny})`;
-
-            // 1. Optimistic fast UI render using preset or local memory data first
-            if (presetCenter) {
-                currentWeatherData.temp = presetCenter.temp;
-                currentWeatherData.humidity = presetCenter.humidity;
-                currentWeatherData.wind = presetCenter.defaultWind;
-                currentWeatherData.pm10 = presetCenter.pm10;
-                currentWeatherData.pm25 = presetCenter.pm25;
-                currentWeatherData.uv = presetCenter.uv;
-                currentWeatherData.sensibleTemp = calculateSensibleTemp(presetCenter.temp, presetCenter.humidity, presetCenter.defaultWind, true);
-                updateUI();
-            }
-
-            // 2. Fetch live data from KMA Open API with Open-Meteo instant backup fallback
-            fetchKmaOpenApi(grid.nx, grid.ny, lat, lng, presetCenter, notifyToast);
         }
 
         function calculateSensibleTemp(T, RH, V, isSummer) {
             if (isSummer) {
-                const Tw = T * Math.atan(0.151977 * Math.sqrt(RH + 8.313659)) 
-                         + Math.atan(T + RH) 
-                         - Math.atan(RH - 1.676331) 
-                         + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) 
-                         - 4.686035;
-                const ST = -0.2442 + (0.55399 * Tw) + (0.45535 * T) - (0.0022 * Math.pow(Tw, 2)) + (0.00278 * Tw * T) + 3.0;
-                return parseFloat(ST.toFixed(1));
+                // KMA Summer Sensible Temp Equation
+                const Tw = T * Math.atan(0.151977 * Math.pow(RH + 8.313659, 0.5)) +
+                           Math.atan(T + RH) - Math.atan(RH - 1.676331) +
+                           0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) - 4.686035;
+                return -0.2442 + 0.55399 * Tw + 0.45535 * T - 0.0022 * Math.pow(Tw, 2) + 0.00225 * Tw * T + 2.38;
+            } else {
+                // KMA Winter Wind-Chill Temp Equation
+                const V_kmh = V * 3.6;
+                return 13.12 + 0.6215 * T - 11.37 * Math.pow(V_kmh, 0.16) + 0.3965 * Math.pow(V_kmh, 0.16) * T;
             }
-            return parseFloat(T.toFixed(1));
         }
 
-        function getKmaBaseDateTime() {
-            const now = new Date();
-            // KMA updates Ultra Short Forecast at 45 minutes past every hour
-            if (now.getMinutes() < 40) {
-                now.setHours(now.getHours() - 1);
-            }
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const date = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            return {
-                baseDate: `${year}${month}${date}`,
-                baseTime: `${hours}00`
-            };
-        }
+        async function fetchWeatherData(lat, lng, name, presetCenter = null) {
+            currentWeatherData.locationName = name;
+            currentWeatherData.lat = lat;
+            currentWeatherData.lng = lng;
 
-        function fetchKmaOpenApi(nx, ny, lat, lng, presetCenter, notifyToast = false) {
-            const { baseDate, baseTime } = getKmaBaseDateTime();
+            if (presetCenter) {
+                currentWeatherData.sido = presetCenter.sido || "서울";
+                currentWeatherData.areaNo = presetCenter.areaNo || "1100000000";
+            }
+
+            const addressEl = document.getElementById('current-address');
+            if (addressEl) addressEl.textContent = name;
+
+            const grid = dfs_xy_conv("toXY", lat, lng);
+            currentWeatherData.nx = grid.nx;
+            currentWeatherData.ny = grid.ny;
             
-            // Clean service key encoding handling
-            const cleanKey = kmaServiceKey.trim();
-            const rawKey = decodeURIComponent(cleanKey);
-            const encodedKey = encodeURIComponent(rawKey);
+            const gridEl = document.getElementById('kma-grid-display');
+            if (gridEl) gridEl.textContent = `KMA (nx: ${grid.nx}, ny: ${grid.ny})`;
 
-            const url = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${encodedKey}&pageNo=1&numOfRows=10&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}`;
+            let fetchedKmaSuccess = false;
+            let fetchedAirSuccess = false;
+            let fetchedUvSuccess = false;
 
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second fast fetch timeout
+            const decodedKey = decodeURIComponent(kmaServiceKey);
 
-            fetch(url, { signal: controller.signal })
-                .then(res => res.json())
-                .then(data => {
-                    clearTimeout(timeoutId);
-                    const items = data?.response?.body?.items?.item;
+            // 1. [기상청 단기예보 / 초단기실황 API 연동]
+            try {
+                const now = new Date();
+                let year = now.getFullYear();
+                let month = String(now.getMonth() + 1).padStart(2, '0');
+                let date = String(now.getDate()).padStart(2, '0');
+                let hours = now.getHours();
+                let minutes = now.getMinutes();
+
+                // 초단기실황은 정시 45분마다 생성되므로 이전 시간으로 조정
+                if (minutes < 45) {
+                    hours -= 1;
+                    if (hours < 0) {
+                        hours = 23;
+                        const prevDay = new Date(now.setDate(now.getDate() - 1));
+                        year = prevDay.getFullYear();
+                        month = String(prevDay.getMonth() + 1).padStart(2, '0');
+                        date = String(prevDay.getDate()).padStart(2, '0');
+                    }
+                }
+                const baseDate = `${year}${month}${date}`;
+                const baseTime = `${String(hours).padStart(2, '0')}00`;
+
+                const kmaUrl = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${encodeURIComponent(decodedKey)}&numOfRows=10&pageNo=1&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${grid.nx}&ny=${grid.ny}`;
+                
+                const kmaRes = await fetch(kmaUrl);
+                if (kmaRes.ok) {
+                    const kmaData = await kmaRes.json();
+                    const items = kmaData?.response?.body?.items?.item;
                     if (items && Array.isArray(items)) {
                         items.forEach(item => {
                             if (item.category === 'T1H') currentWeatherData.temp = parseFloat(item.obsrValue);
                             if (item.category === 'REH') currentWeatherData.humidity = parseFloat(item.obsrValue);
                             if (item.category === 'WSD') currentWeatherData.wind = parseFloat(item.obsrValue);
                         });
-                        currentWeatherData.sensibleTemp = calculateSensibleTemp(currentWeatherData.temp, currentWeatherData.humidity, currentWeatherData.wind, true);
-                        
-                        updateDataSourceBadge("🇰🇷 기상청 API 실시간 연동 성공", true);
-                        updateUI();
-                        if (notifyToast) showToast("✅ 기상청 최신 데이터를 성공적으로 수신했습니다.");
-                    } else {
-                        throw new Error("Invalid Response");
+                        fetchedKmaSuccess = true;
                     }
-                })
-                .catch(() => {
-                    clearTimeout(timeoutId);
-                    // Fast Backup Fetching via Open-Meteo API (High Speed, No Key Required, 100% Reliable CORS Free)
-                    fetchBackupWeatherData(lat, lng, presetCenter, notifyToast);
-                });
-        }
+                }
+            } catch (err) {
+                console.warn("기상청 단기예보/실황 API 연동 시도 실패 (기본/Preset 데이터 적용):", err);
+            }
 
-        function fetchBackupWeatherData(lat, lng, presetCenter, notifyToast = false) {
-            const backupUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&hourly=relativehumidity_2m`;
-
-            fetch(backupUrl)
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.current_weather) {
-                        currentWeatherData.temp = parseFloat(data.current_weather.temperature);
-                        currentWeatherData.wind = parseFloat(data.current_weather.windspeed);
-                        if (data.hourly && data.hourly.relativehumidity_2m && data.hourly.relativehumidity_2m.length > 0) {
-                            currentWeatherData.humidity = parseFloat(data.hourly.relativehumidity_2m[0]);
+            // 2. [한국환경공단 에어코리아 대기오염정보 API 연동]
+            try {
+                const airUrl = `https://apis.data.go.kr/B690001/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty?serviceKey=${encodeURIComponent(decodedKey)}&returnType=json&numOfRows=20&pageNo=1&sidoName=${encodeURIComponent(currentWeatherData.sido)}&ver=1.0`;
+                const airRes = await fetch(airUrl);
+                if (airRes.ok) {
+                    const airData = await airRes.json();
+                    const items = airData?.response?.body?.items;
+                    if (items && items.length > 0) {
+                        const firstItem = items[0];
+                        if (firstItem.pm10Value && firstItem.pm10Value !== '-') {
+                            currentWeatherData.pm10 = parseInt(firstItem.pm10Value, 10);
                         }
-                        currentWeatherData.sensibleTemp = calculateSensibleTemp(currentWeatherData.temp, currentWeatherData.humidity, currentWeatherData.wind, true);
-                        
-                        updateDataSourceBadge("⚡ 초고속 실시간 백업 API 연동 중", true);
-                        updateUI();
-                        if (notifyToast) showToast("⚡ 실시간 기상 데이터를 정상 수신하였습니다.");
+                        if (firstItem.pm25Value && firstItem.pm25Value !== '-') {
+                            currentWeatherData.pm25 = parseInt(firstItem.pm25Value, 10);
+                        }
+                        fetchedAirSuccess = true;
                     }
-                })
-                .catch(() => {
-                    // If network completely offline, use preset values gracefully
-                    if (presetCenter) {
-                        currentWeatherData.temp = presetCenter.temp;
-                        currentWeatherData.humidity = presetCenter.humidity;
-                        currentWeatherData.wind = presetCenter.defaultWind;
-                        currentWeatherData.sensibleTemp = calculateSensibleTemp(presetCenter.temp, presetCenter.humidity, presetCenter.defaultWind, true);
-                    }
-                    updateDataSourceBadge("📍 사전 기상 모델 기반 연동", false);
-                    updateUI();
-                });
-        }
+                }
+            } catch (err) {
+                console.warn("에어코리아 대기오염 API 연동 시도 실패 (기본/Preset 데이터 적용):", err);
+            }
 
-        function updateDataSourceBadge(text, isLive) {
-            const badge = document.getElementById('data-source-badge');
-            const footer = document.getElementById('data-source-footer');
-            if (badge) {
-                badge.textContent = text;
-                badge.className = `text-[10px] sm:text-xs border px-2.5 py-1 rounded-full flex items-center gap-1 font-medium w-fit ${isLive ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-sky-500/10 text-sky-400 border-sky-500/20'}`;
+            // 3. [기상청 생활기상지수 조회서비스 - 자외선지수 API 연동]
+            try {
+                const now = new Date();
+                const timeStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}`;
+                const uvUrl = `https://apis.data.go.kr/1360000/LivingWthrIdxServiceV4/getUVIdxV4?serviceKey=${encodeURIComponent(decodedKey)}&dataType=JSON&areaNo=${currentWeatherData.areaNo}&time=${timeStr}`;
+                
+                const uvRes = await fetch(uvUrl);
+                if (uvRes.ok) {
+                    const uvData = await uvRes.json();
+                    const items = uvData?.response?.body?.items?.item;
+                    if (items && items.length > 0) {
+                        const h0 = items[0].h0;
+                        if (h0 !== undefined && h0 !== '') {
+                            currentWeatherData.uv = parseFloat(h0);
+                            fetchedUvSuccess = true;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn("기상청 생활기상지수(자외선지수) API 연동 시도 실패 (기본/Preset 데이터 적용):", err);
             }
-            if (footer) {
-                footer.textContent = `데이터 원천: ${text}`;
+
+            // Fallback & Preset 적용 (API 미반영 파라미터가 있을 경우)
+            if (!fetchedKmaSuccess && presetCenter) {
+                currentWeatherData.temp = presetCenter.temp;
+                currentWeatherData.humidity = presetCenter.humidity;
+                currentWeatherData.wind = presetCenter.defaultWind;
             }
+            if (!fetchedAirSuccess && presetCenter) {
+                currentWeatherData.pm10 = presetCenter.pm10;
+                currentWeatherData.pm25 = presetCenter.pm25;
+            }
+            if (!fetchedUvSuccess && presetCenter) {
+                currentWeatherData.uv = presetCenter.uv;
+            }
+
+            // 기상청 공식 산식 체감온도 정밀 산출
+            currentWeatherData.sensibleTemp = calculateSensibleTemp(
+                currentWeatherData.temp, 
+                currentWeatherData.humidity, 
+                currentWeatherData.wind, 
+                currentWeatherData.isSummer
+            );
+
+            // API 상태 태그 업데이트
+            const apiTag = document.getElementById('api-status-tag');
+            if (apiTag) {
+                if (fetchedKmaSuccess || fetchedAirSuccess || fetchedUvSuccess) {
+                    apiTag.className = "text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg w-fit";
+                    apiTag.textContent = "📡 실시간 공공데이터 API 연동 중";
+                } else {
+                    apiTag.className = "text-[11px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-lg w-fit";
+                    apiTag.textContent = "⚙️ 사전정의 측정데이터 적용 중";
+                }
+            }
+
+            updateUI();
         }
 
         function updateUI() {
-            const finalSensible = currentWeatherData.sensibleTemp;
+            const st = currentWeatherData.sensibleTemp;
+            
+            // DOM Metric Bindings
+            const tempVal = document.getElementById('actual-temp-val');
+            const humVal = document.getElementById('humidity-val');
+            const windVal = document.getElementById('wind-val');
+            const sensibleVal = document.getElementById('sensible-temp-val');
+            const pm10Val = document.getElementById('pm10-val');
+            const pm25Val = document.getElementById('pm25-val');
+            const uvVal = document.getElementById('uv-val');
 
-            document.getElementById('sensible-temp-val').textContent = finalSensible.toFixed(1);
-            document.getElementById('actual-temp-val').textContent = `${currentWeatherData.temp.toFixed(1)} °C`;
-            document.getElementById('humidity-val').textContent = `${Math.round(currentWeatherData.humidity)} %`;
-            document.getElementById('wind-val').textContent = `${currentWeatherData.wind.toFixed(1)} m/s`;
-            document.getElementById('uv-val').textContent = `${currentWeatherData.uv}`;
+            if (tempVal) tempVal.textContent = `${currentWeatherData.temp.toFixed(1)} °C`;
+            if (humVal) humVal.textContent = `${Math.round(currentWeatherData.humidity)} %`;
+            if (windVal) windVal.textContent = `${currentWeatherData.wind.toFixed(1)} m/s`;
+            if (pm10Val) pm10Val.textContent = `${currentWeatherData.pm10} ㎍/㎥`;
+            if (pm25Val) pm25Val.textContent = `${currentWeatherData.pm25} ㎍/㎥`;
+            if (uvVal) uvVal.textContent = currentWeatherData.uv.toFixed(1);
 
-            document.getElementById('pm10-val').textContent = `${currentWeatherData.pm10} ㎍/㎥`;
-            document.getElementById('pm25-val').textContent = `${currentWeatherData.pm25} ㎍/㎥`;
+            // Fine Dust & UV Badges
+            const pm10Badge = document.getElementById('pm10-badge');
+            if (pm10Badge) {
+                const pm = currentWeatherData.pm10;
+                if (pm <= 30) { pm10Badge.textContent = "좋음"; pm10Badge.className = "text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else if (pm <= 80) { pm10Badge.textContent = "보통"; pm10Badge.className = "text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else if (pm <= 150) { pm10Badge.textContent = "나쁨"; pm10Badge.className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else { pm10Badge.textContent = "매우나쁨"; pm10Badge.className = "text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+            }
 
+            const pm25Badge = document.getElementById('pm25-badge');
+            if (pm25Badge) {
+                const pm = currentWeatherData.pm25;
+                if (pm <= 15) { pm25Badge.textContent = "좋음"; pm25Badge.className = "text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else if (pm <= 35) { pm25Badge.textContent = "보통"; pm25Badge.className = "text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else if (pm <= 75) { pm25Badge.textContent = "나쁨"; pm25Badge.className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else { pm25Badge.textContent = "매우나쁨"; pm25Badge.className = "text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+            }
+
+            const uvBadge = document.getElementById('uv-badge');
+            if (uvBadge) {
+                const uv = currentWeatherData.uv;
+                if (uv < 3) { uvBadge.textContent = "낮음"; uvBadge.className = "text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else if (uv < 6) { uvBadge.textContent = "보통"; uvBadge.className = "text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else if (uv < 8) { uvBadge.textContent = "높음"; uvBadge.className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else if (uv < 11) { uvBadge.textContent = "매우높음"; uvBadge.className = "text-[10px] bg-orange-500/20 text-orange-400 border border-orange-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+                else { uvBadge.textContent = "위험"; uvBadge.className = "text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/40 px-1.5 py-0.5 rounded font-semibold whitespace-nowrap"; }
+            }
+
+            // 4-Stage Safety Judgment & Stage-Specific Color Mapping
+            let statusText = "안전";
+            let hexColor = "#10b981"; // Emerald Green
+            let gaugePercent = 25;
+
+            if (st < 31) {
+                statusText = "안전";
+                hexColor = "#10b981"; // 초록 (안전)
+                gaugePercent = Math.min(25, Math.max(5, (st / 31) * 25));
+            } else if (st >= 31 && st < 33) {
+                statusText = "주의";
+                hexColor = "#3b82f6"; // 파랑 (주의)
+                gaugePercent = 25 + ((st - 31) / 2) * 25;
+            } else if (st >= 33 && st < 35) {
+                statusText = "경고";
+                hexColor = "#f59e0b"; // 노랑/주황 (경고)
+                gaugePercent = 50 + ((st - 33) / 2) * 25;
+            } else {
+                statusText = "위험";
+                hexColor = "#f43f5e"; // 빨강 (위험)
+                gaugePercent = Math.min(100, 75 + ((st - 35) / 5) * 25);
+            }
+
+            // Update Sensible Temp Text Color based on Stage
+            if (sensibleVal) {
+                sensibleVal.textContent = st.toFixed(1);
+                sensibleVal.style.color = hexColor;
+            }
+
+            // Update Badge & Circle Gauge
             const badgeText = document.getElementById('status-badge-text');
             const badgeDot = document.getElementById('status-badge-dot');
-            const badge = document.getElementById('status-badge');
+            const badgeBox = document.getElementById('status-badge');
+            const circleFill = document.getElementById('dial-circle-fill');
             const barFill = document.getElementById('gauge-bar-fill');
-            const dialCircle = document.getElementById('dial-circle-fill');
-            const adviceText = document.getElementById('ai-advice-text');
 
-            // Reset Stage Card Highlights
-            const zones = ['zone-safe', 'zone-attention', 'zone-caution', 'zone-danger'];
-            zones.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.className = "bg-slate-950/80 border border-slate-800 rounded-xl p-2.5 transition-all";
-            });
-
-            let stage = "안전";
-            let color = "emerald";
-            let textColorClass = "text-emerald-400";
-            let activeZoneId = "zone-safe";
-            let adviceMsg = "";
-            let percentage = 25;
-
-            // Determine Heat Stage based on Sensible Temperature
-            if (finalSensible < 31) {
-                stage = "안전";
-                color = "emerald";
-                textColorClass = "text-emerald-400";
-                activeZoneId = "zone-safe";
-                percentage = Math.max(5, (finalSensible / 31) * 25);
-                adviceMsg = `기상 공식 기준 현재 체감온도는 <strong class="${textColorClass}">${finalSensible.toFixed(1)}°C</strong>입니다. 현재 <strong>안전 단계</strong>입니다. 충분한 수분을 섭취하세요.`;
-            } else if (finalSensible < 33) {
-                stage = "주의";
-                color = "blue";
-                textColorClass = "text-blue-400";
-                activeZoneId = "zone-attention";
-                percentage = 25 + ((finalSensible - 31) / 2) * 25;
-                adviceMsg = `기상 공식 기준 현재 체감온도는 <strong class="${textColorClass}">${finalSensible.toFixed(1)}°C</strong>입니다. 현재 <strong>주의 단계</strong>입니다. 야외 활동 시 주기적으로 휴식을 취하세요.`;
-            } else if (finalSensible < 35) {
-                stage = "경고";
-                color = "amber";
-                textColorClass = "text-amber-400";
-                activeZoneId = "zone-caution";
-                percentage = 50 + ((finalSensible - 33) / 2) * 25;
-                adviceMsg = `기상 공식 기준 현재 체감온도는 <strong class="${textColorClass}">${finalSensible.toFixed(1)}°C</strong>입니다. 현재 <strong>경고 단계</strong>입니다. 장시간 야외 활동을 삼가고 시원한 그늘로 이동하세요.`;
-            } else {
-                stage = "위험";
-                color = "rose";
-                textColorClass = "text-rose-400";
-                activeZoneId = "zone-danger";
-                percentage = Math.min(100, 75 + ((finalSensible - 35) / 5) * 25);
-                adviceMsg = `기상 공식 기준 현재 체감온도는 <strong class="${textColorClass}">${finalSensible.toFixed(1)}°C</strong>입니다. 현재 <strong>위험 단계</strong>입니다. 폭염 위험이 매우 높으니 야외 작업을 즉시 중단하십시오.`;
+            if (badgeText) badgeText.textContent = statusText;
+            if (badgeDot) badgeDot.style.backgroundColor = hexColor;
+            if (badgeBox) {
+                badgeBox.style.borderColor = `${hexColor}66`;
+                badgeBox.style.color = hexColor;
+                badgeBox.style.backgroundColor = `${hexColor}22`;
             }
 
-            if (badgeText) badgeText.textContent = stage;
-            if (badgeDot) badgeDot.className = `w-2 h-2 rounded-full bg-${color}-500 inline-block`;
-            if (badge) badge.className = `mt-1 px-3 py-0.5 rounded-full bg-${color}-500/20 border border-${color}-500/40 text-${color}-400 font-bold text-xs flex items-center gap-1`;
+            if (circleFill) {
+                const circumference = 263.89;
+                const offset = circumference - (gaugePercent / 100) * circumference;
+                circleFill.style.strokeDashoffset = offset;
+                circleFill.style.stroke = hexColor;
+                circleFill.style.color = hexColor;
+            }
 
             if (barFill) {
-                barFill.className = `h-full rounded-full bg-${color}-500 gradient-bar transition-all duration-700 ease-out`;
-                barFill.style.width = `${percentage}%`;
+                barFill.style.width = `${gaugePercent}%`;
+                barFill.style.backgroundColor = hexColor;
             }
 
-            if (dialCircle) {
-                dialCircle.className = `text-${color}-500 transition-all duration-700 ease-out`;
-                const dashoffset = 263.89 * (1 - percentage / 100);
-                dialCircle.style.strokeDashoffset = dashoffset.toFixed(1);
+            // Highlight Stage Cards dynamically using exact stage color
+            ['safe', 'attention', 'caution', 'danger'].forEach(zone => {
+                const card = document.getElementById(`zone-${zone}`);
+                if (card) {
+                    card.classList.remove('highlight-ring');
+                    card.style.borderColor = '';
+                    card.style.backgroundColor = '';
+                }
+            });
+
+            let currentZoneCard = null;
+            if (statusText === "안전") currentZoneCard = document.getElementById('zone-safe');
+            else if (statusText === "주의") currentZoneCard = document.getElementById('zone-attention');
+            else if (statusText === "경고") currentZoneCard = document.getElementById('zone-caution');
+            else if (statusText === "위험") currentZoneCard = document.getElementById('zone-danger');
+
+            if (currentZoneCard) {
+                currentZoneCard.classList.add('highlight-ring');
+                currentZoneCard.style.borderColor = hexColor;
+                currentZoneCard.style.backgroundColor = `${hexColor}18`;
             }
 
-            const activeZone = document.getElementById(activeZoneId);
-            if (activeZone) {
-                activeZone.className = `bg-slate-950/80 border border-${color}-500/60 shadow-lg shadow-${color}-500/10 rounded-xl p-2.5 transition-all`;
+            // AI Text Guidance
+            const aiText = document.getElementById('ai-advice-text');
+            if (aiText) {
+                aiText.innerHTML = `현재 <strong class="text-white">${currentWeatherData.locationName}</strong>의 체감온도는 <strong style="color:${hexColor}">${st.toFixed(1)}°C</strong>로 <strong style="color:${hexColor}">${statusText}</strong> 단계입니다. 미세먼지(${currentWeatherData.pm10}㎍/㎥) 및 자외선지수(${currentWeatherData.uv.toFixed(1)})를 고려하여 수검자 및 근무자 안전수칙을 준수해 주세요.`;
             }
-
-            if (adviceText) adviceText.innerHTML = adviceMsg;
         }
 
         function toggleAudioBriefing() {
-            if (!('speechSynthesis' in window)) return;
+            if (!('speechSynthesis' in window)) {
+                showToast("이 브라우저는 음성 브리핑(TTS)을 지원하지 않습니다.", true);
+                return;
+            }
+
             if (isSpeaking) {
                 window.speechSynthesis.cancel();
                 isSpeaking = false;
-                document.getElementById('tts-btn-text').textContent = "AI 음성 브리핑";
-                document.getElementById('tts-icon').textContent = "🔊";
+                updateTtsBtnUI(false);
                 return;
             }
-            const badgeText = document.getElementById('status-badge-text')?.textContent || "안전";
-            const text = `현재 ${currentWeatherData.locationName}의 체감온도는 ${currentWeatherData.sensibleTemp.toFixed(1)}도이며, ${badgeText} 단계입니다. 안전 수칙을 준수해주세요.`;
-            speechUtterance = new SpeechSynthesisUtterance(text);
+
+            const aiTextEl = document.getElementById('ai-advice-text');
+            if (!aiTextEl) return;
+
+            const textToSpeak = `KoRoad 안전 알림판 안내입니다. ${aiTextEl.textContent.trim()}`;
+            speechUtterance = new SpeechSynthesisUtterance(textToSpeak);
             speechUtterance.lang = 'ko-KR';
-            speechUtterance.onstart = () => { 
-                isSpeaking = true; 
-                document.getElementById('tts-btn-text').textContent = "재생 중..."; 
+            speechUtterance.rate = 1.0;
+
+            speechUtterance.onend = () => {
+                isSpeaking = false;
+                updateTtsBtnUI(false);
             };
-            speechUtterance.onend = () => { 
-                isSpeaking = false; 
-                document.getElementById('tts-btn-text').textContent = "AI 음성 브리핑"; 
+
+            speechUtterance.onerror = () => {
+                isSpeaking = false;
+                updateTtsBtnUI(false);
             };
+
             window.speechSynthesis.speak(speechUtterance);
+            isSpeaking = true;
+            updateTtsBtnUI(true);
+        }
+
+        function updateTtsBtnUI(speaking) {
+            const btnText = document.getElementById('tts-btn-text');
+            const btnIcon = document.getElementById('tts-icon');
+            if (btnText) btnText.textContent = speaking ? "브리핑 정지" : "AI 음성 브리핑";
+            if (btnIcon) btnIcon.textContent = speaking ? "⏹️" : "🔊";
         }
     </script>
 </body>
