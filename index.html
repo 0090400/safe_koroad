@@ -24,7 +24,7 @@
                     <span id="app-logo-icon" class="text-xl">❄️</span>
                 </div>
                 <div>
-                    <h1 class="text-lg md:text-[10px] font-bold text-white flex items-center gap-2">
+                    <h1 class="text-sm md:text-base font-bold text-white leading-tight">
                         KoRoad<br>안전 알림판
                     </h1>
                 </div>
@@ -71,25 +71,26 @@
 
         <!-- Weather Overview -->
         <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 md:p-5 shadow-xl space-y-4">
+            <!-- 1. 기온/습도/풍속 및 체감온도 다이얼 영역 (상단 배치) -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
                 <!-- Left: Actual Weather -->
-                <div class="space-y-2 order-2 md:order-1">
-                    <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex justify-between text-sm">
+                <div class="space-y-2">
+                    <div class="bg-slate-950/60 rounded-xl p-3.5 border border-slate-800/80 flex justify-between items-center text-sm">
                         <span class="text-slate-400 text-xs">🌡️ 현재 기온</span>
-                        <span id="actual-temp-val" class="font-bold text-white">-- °C</span>
+                        <span id="actual-temp-val" class="font-bold text-white text-base">-- °C</span>
                     </div>
-                    <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex justify-between text-sm">
+                    <div class="bg-slate-950/60 rounded-xl p-3.5 border border-slate-800/80 flex justify-between items-center text-sm">
                         <span class="text-slate-400 text-xs">💧 습도</span>
-                        <span id="humidity-val" class="font-bold text-white">-- %</span>
+                        <span id="humidity-val" class="font-bold text-white text-base">-- %</span>
                     </div>
-                    <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex justify-between text-sm">
+                    <div class="bg-slate-950/60 rounded-xl p-3.5 border border-slate-800/80 flex justify-between items-center text-sm">
                         <span class="text-slate-400 text-xs">🍃 풍속</span>
-                        <span id="wind-val" class="font-bold text-sky-400">-- m/s</span>
+                        <span id="wind-val" class="font-bold text-sky-400 text-base">-- m/s</span>
                     </div>
                 </div>
 
-                <!-- Center: Sensible Temp Dial -->
-                <div class="flex flex-col items-center justify-center py-2 order-1 md:order-2">
+                <!-- Right: Sensible Temp Dial -->
+                <div class="flex flex-col items-center justify-center py-2">
                     <div class="relative w-44 h-44 flex items-center justify-center">
                         <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
                             <circle cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7" class="text-slate-800" fill="transparent" />
@@ -107,10 +108,11 @@
                         </div>
                     </div>
                 </div>
+            </div>
 
-            <!-- Guidelines & Step Bars -->
+            <!-- 2. Guidelines & Step Bars (하단 배치) -->
             <div class="space-y-3 pt-4 border-t border-slate-800/80">
-                <!-- 단계 구분 바 (시즌에 따라 범위 dynamic 변경) -->
+                <!-- 단계 구분 바 -->
                 <div class="grid grid-cols-4 gap-1 text-center text-[10px] md:text-[11px] font-bold">
                     <div id="bar-safe" class="py-1.5 rounded-lg transition-all">안전</div>
                     <div id="bar-caution" class="py-1.5 rounded-lg transition-all">주의</div>
@@ -135,9 +137,6 @@
     </div>
 
     <script>
-        // Proj4js TM 좌표계 정의 (에어코리아 중부원점)
-        proj4.defs("EPSG:2097", "+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=bessel +units=m +no_defs +towgs84=-115.80,474.99,674.11,1.16,-2.31,-1.63,6.43");
-
         const centerData = {
             seoul_gyeonggi_incheon: [
                 { name: "강남 운전면허시험장", lat: 37.5082, lng: 127.0673 },
@@ -180,26 +179,23 @@
 
         let kmaServiceKey = 'whIV7oO5m%2BRhIy4BFG6USPGsSzS7Zl5Jqi1%2B91H9khC%2FHmifFXLEZpCB6MOy5z4rCLWT7AqP2U%2F9yomgXX166w%3D%3D';
         
-        // 현재 선택된 계절 모드 ('winter' | 'summer')
         let currentSeasonMode = 'winter'; 
         let currentLat = null, currentLng = null, currentPlaceName = "현재 위치 (GPS)";
 
         window.onload = () => {
-            // 11월~2월은 겨울철, 7월~9월은 여름철 디폴트 자동 설정
             const currentMonth = new Date().getMonth() + 1;
             if (currentMonth >= 7 && currentMonth <= 9) {
                 currentSeasonMode = 'summer';
             } else if (currentMonth === 11 || currentMonth === 12 || currentMonth === 1 || currentMonth === 2) {
                 currentSeasonMode = 'winter';
             } else {
-                currentSeasonMode = 'winter'; // 기본 fallback
+                currentSeasonMode = 'winter';
             }
             
             updateModeUI();
             requestLocation();
         };
 
-        // 계절 버튼 클릭 스위치
         function setSeasonMode(mode) {
             currentSeasonMode = mode;
             updateModeUI();
@@ -208,7 +204,6 @@
             }
         }
 
-        // 스위치 버튼 UI 업데이트
         function updateModeUI() {
             const btnWinter = document.getElementById('btn-mode-winter');
             const btnSummer = document.getElementById('btn-mode-summer');
@@ -250,47 +245,20 @@
             return { nx: Math.floor(ra * Math.sin(theta) + XO + 0.5), ny: Math.floor(ro - ra * Math.cos(theta) + YO + 0.5) };
         }
 
-        /**
-         * 산업안전보건법 및 기상청 공식 기준 체감온도 계산 함수
-         */
         function calculateSensibleTemp(temp, humidity, wind) {
             if (currentSeasonMode === 'summer') {
-                // 여름철 체감온도 (습구온도 기반 산출식)
                 const T = temp, RH = humidity;
                 const Tw = T * Math.atan(0.151977 * Math.pow(RH + 8.313659, 0.5)) + Math.atan(T + RH) - Math.atan(RH - 1.676331) + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) - 4.686035;
                 return -0.2442 + 0.55399 * Tw + 0.45535 * T - 0.0022 * Math.pow(Tw, 2) + 0.00278 * Tw * T + 3.0;
             } else {
-                // 겨울철 체감온도 (산업안전보건/기상청 표준 계산식)
-                // W = 13.12 + 0.6215*T - 11.37*(V^0.16) + 0.3965*T*(V^0.16)
-                // T: 기온(°C), V: 풍속(km/h) -> m/s에 3.6 곱함
                 const T = temp;
                 const V = Math.max(wind * 3.6, 0); 
-                
-                // 산업안전 가이드라인 상 기온 10°C 이하, 풍속 4.8km/h(1.33m/s) 이상 시 공식 적용
                 if (T <= 10.0 && V >= 4.8) {
                     const vPow = Math.pow(V, 0.16);
                     return 13.12 + (0.6215 * T) - (11.37 * vPow) + (0.3965 * T * vPow);
                 }
                 return temp;
             }
-        }
-
-        // 미세먼지(PM10) 등급 판정 함수
-        function getPm10Grade(val) {
-            if (val === '-' || isNaN(val)) return { text: "정보없음", color: "bg-slate-800 text-slate-400" };
-            if (val <= 30) return { text: "좋음", color: "bg-blue-500/20 text-blue-400 border border-blue-500/30" };
-            if (val <= 80) return { text: "보통", color: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" };
-            if (val <= 150) return { text: "나쁨", color: "bg-amber-500/20 text-amber-400 border border-amber-500/30" };
-            return { text: "매우나쁨", color: "bg-rose-500/20 text-rose-400 border border-rose-500/30" };
-        }
-
-        // 초미세먼지(PM2.5) 등급 판정 함수
-        function getPm25Grade(val) {
-            if (val === '-' || isNaN(val)) return { text: "정보없음", color: "bg-slate-800 text-slate-400" };
-            if (val <= 15) return { text: "좋음", color: "bg-blue-500/20 text-blue-400 border border-blue-500/30" };
-            if (val <= 35) return { text: "보통", color: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" };
-            if (val <= 75) return { text: "나쁨", color: "bg-amber-500/20 text-amber-400 border border-amber-500/30" };
-            return { text: "매우나쁨", color: "bg-rose-500/20 text-rose-400 border border-rose-500/30" };
         }
 
         function requestLocation() {
@@ -320,7 +288,6 @@
             const key = decodeURIComponent(kmaServiceKey);
             
             let weather = { temp: 0, humidity: 0, wind: 0, sensible: 0 };
-            let air = { pm10: '-', pm25: '-', station: '탐색 중' };
 
             try {
                 const grid = dfs_xy_conv(lat, lng);
@@ -345,47 +312,15 @@
                 }
                 
                 weather.sensible = calculateSensibleTemp(weather.temp, weather.humidity, weather.wind);
-                
-                const tmCoords = proj4("EPSG:4326", "EPSG:2097", [lng, lat]);
-                const stUrl = `https://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList?serviceKey=${encodeURIComponent(key)}&returnType=json&tmX=${tmCoords[0]}&tmY=${tmCoords[1]}`;
-                const stRes = await fetch(stUrl);
-                const stData = await stRes.json();
-                
-                if (stData?.response?.body?.items?.length > 0) {
-                    air.station = stData.response.body.items[0].stationName;
-                    const airUrl = `https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty?serviceKey=${encodeURIComponent(key)}&returnType=json&numOfRows=1&pageNo=1&stationName=${encodeURIComponent(air.station)}&dataTerm=DAILY&ver=1.3`;
-                    const airRes = await fetch(airUrl);
-                    const aData = await airRes.json();
-                    
-                    const item = aData?.response?.body?.items?.[0];
-                    if (item) {
-                        air.pm10 = item.pm10Value && item.pm10Value !== '-' ? item.pm10Value : '-';
-                        air.pm25 = item.pm25Value && item.pm25Value !== '-' ? item.pm25Value : '-';
-                    }
-                }
             } catch(e) {
                 console.error("API 연동 에러:", e);
             }
 
-            // 화면 데이터 업데이트
             document.getElementById('actual-temp-val').textContent = `${weather.temp.toFixed(1)} °C`;
             document.getElementById('humidity-val').textContent = `${Math.round(weather.humidity)} %`;
             document.getElementById('wind-val').textContent = `${weather.wind.toFixed(1)} m/s`;
             
             document.getElementById('sensible-temp-val').textContent = weather.sensible.toFixed(1);
-            document.getElementById('station-name-label').textContent = `(${air.station})`;
-            
-            document.getElementById('pm10-val').textContent = `${air.pm10} ㎍/㎥`;
-            const pm10Info = getPm10Grade(parseFloat(air.pm10));
-            const pm10Badge = document.getElementById('pm10-badge');
-            pm10Badge.textContent = pm10Info.text;
-            pm10Badge.className = `px-2 py-0.5 rounded text-[10px] font-bold ${pm10Info.color}`;
-
-            document.getElementById('pm25-val').textContent = `${air.pm25} ㎍/㎥`;
-            const pm25Info = getPm25Grade(parseFloat(air.pm25));
-            const pm25Badge = document.getElementById('pm25-badge');
-            pm25Badge.textContent = pm25Info.text;
-            pm25Badge.className = `px-2 py-0.5 rounded text-[10px] font-bold ${pm25Info.color}`;
 
             const bars = {
                 safe: document.getElementById('bar-safe'),
@@ -394,13 +329,11 @@
                 danger: document.getElementById('bar-danger')
             };
 
-            // 계절에 맞춘 바 라벨 업데이트 및 수칙 계산
             let color = "#10b981", text = "안전", pct = 25, activeKey = 'safe';
             let guideTitle = "";
             let guideItems = [];
 
             if (currentSeasonMode === 'winter') {
-                // 겨울철 산안법/한파 위험 기준
                 bars.safe.textContent = "안전 (>-3°C)";
                 bars.caution.textContent = "주의 (-3°C~)";
                 bars.warning.textContent = "경고 (-10°C~)";
@@ -442,7 +375,6 @@
                     ];
                 }
             } else {
-                // 여름철 온열질환 위험 기준
                 bars.safe.textContent = "안전 (<31°C)";
                 bars.caution.textContent = "주의 (31°C~)";
                 bars.warning.textContent = "경고 (33°C~)";
@@ -485,7 +417,6 @@
                 }
             }
 
-            // 바 스타일 초기화
             Object.values(bars).forEach(b => {
                 b.className = "py-1.5 rounded-lg bg-slate-900/60 text-slate-500 border border-slate-800 transition-all font-semibold";
                 b.style.backgroundColor = "";
@@ -493,7 +424,6 @@
                 b.style.color = "";
             });
 
-            // 활성화된 단계 강조
             const activeBar = bars[activeKey];
             activeBar.className = "py-1.5 rounded-lg border transition-all font-extrabold";
             activeBar.style.backgroundColor = color + '22';
