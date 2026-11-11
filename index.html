@@ -20,14 +20,27 @@
         <!-- Header -->
         <header class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 md:p-5 backdrop-blur-md shadow-xl flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                    </svg>
+                <div id="app-logo-bg" class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 flex items-center justify-center text-white shadow-md transition-colors">
+                    <span id="app-logo-icon" class="text-xl">❄️</span>
                 </div>
-                <h1 class="text-lg md:text-xl font-bold text-white">KoRoad 안전 알림판</h1>
+                <div>
+                    <h1 class="text-lg md:text-[10px] font-bold text-white flex items-center gap-2">
+                        KoRoad 안전 알림판
+                    </h1>
+                </div>
             </div>
+            
             <div class="flex items-center gap-2">
+                <!-- 계절 선택 모드 스위치 -->
+                <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center gap-1">
+                    <button id="btn-mode-winter" onclick="setSeasonMode('winter')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 text-cyan-300 bg-cyan-950/80 border border-cyan-800/80">
+                        ❄️ 겨울
+                    </button>
+                    <button id="btn-mode-summer" onclick="setSeasonMode('summer')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 text-slate-400 hover:text-slate-200">
+                        ☀️ 여름
+                    </button>
+                </div>
+
                 <button onclick="requestLocation()" title="현재 위치 새로고침" class="p-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -42,7 +55,7 @@
                 <span class="text-blue-400">📍</span> GPS 위치 탐색 중...
             </h2>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                <select id="region-zone-select" onchange="onZoneChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-slate-200 outline-none">
+                <select id="region-zone-select" onchange="onZoneChange(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-slate-200 outline-none focus:border-slate-600">
                     <option value="">-- [1단계] 권역 선택 --</option>
                     <option value="seoul_gyeonggi_incheon">1. 서울 · 경기 · 인천</option>
                     <option value="busan_gyeongsang">2. 부산 · 경상</option>
@@ -50,7 +63,7 @@
                     <option value="gwangju_jeolla">4. 광주 · 전라</option>
                     <option value="gangwon_jeju">5. 강원 · 제주</option>
                 </select>
-                <select id="center-select" onchange="onCenterSelect(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-slate-200 outline-none">
+                <select id="center-select" onchange="onCenterSelect(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl py-2.5 px-3 text-xs text-slate-200 outline-none focus:border-slate-600">
                     <option value="">-- [2단계] 시험장 선택 --</option>
                 </select>
             </div>
@@ -62,7 +75,7 @@
                 <!-- Left: Actual Weather -->
                 <div class="space-y-2 order-2 md:order-1">
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex justify-between text-sm">
-                        <span class="text-slate-400 text-xs">🌡️ 기온</span>
+                        <span class="text-slate-400 text-xs">🌡️ 현재 기온</span>
                         <span id="actual-temp-val" class="font-bold text-white">-- °C</span>
                     </div>
                     <div class="bg-slate-950/60 rounded-xl p-3 border border-slate-800/80 flex justify-between text-sm">
@@ -83,7 +96,7 @@
                             <circle id="dial-circle-fill" cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7" class="transition-all duration-1000 ease-out" fill="transparent" stroke-dasharray="263.89" stroke-dashoffset="263.89" stroke-linecap="round" />
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                            <span class="text-[10px] font-semibold text-slate-400 tracking-widest">체감온도</span>
+                            <span id="sensible-label" class="text-[10px] font-semibold text-slate-400 tracking-widest">겨울철 체감온도</span>
                             <div class="flex items-baseline gap-0.5">
                                 <span id="sensible-temp-val" class="text-3xl font-black">--</span>
                                 <span class="text-lg font-bold text-slate-400">°C</span>
@@ -119,12 +132,12 @@
 
             <!-- Guidelines & Step Bars -->
             <div class="space-y-3 pt-4 border-t border-slate-800/80">
-                <!-- 단계 구분 바 -->
-                <div class="grid grid-cols-4 gap-1 text-center text-[11px] font-bold">
-                    <div id="bar-safe" class="py-1.5 rounded-lg transition-all">안전 (<31°C)</div>
-                    <div id="bar-caution" class="py-1.5 rounded-lg transition-all">주의 (31°C~)</div>
-                    <div id="bar-warning" class="py-1.5 rounded-lg transition-all">경고 (33°C~)</div>
-                    <div id="bar-danger" class="py-1.5 rounded-lg transition-all">위험 (35°C~)</div>
+                <!-- 단계 구분 바 (시즌에 따라 범위 dynamic 변경) -->
+                <div class="grid grid-cols-4 gap-1 text-center text-[10px] md:text-[11px] font-bold">
+                    <div id="bar-safe" class="py-1.5 rounded-lg transition-all">안전</div>
+                    <div id="bar-caution" class="py-1.5 rounded-lg transition-all">주의</div>
+                    <div id="bar-warning" class="py-1.5 rounded-lg transition-all">경고</div>
+                    <div id="bar-danger" class="py-1.5 rounded-lg transition-all">위험</div>
                 </div>
                 <!-- 게이지 막대 -->
                 <div class="w-full h-3 bg-slate-950 rounded-full border border-slate-800 overflow-hidden relative">
@@ -133,7 +146,7 @@
                 <!-- 행동요령 안내박스 -->
                 <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 space-y-2">
                     <div class="font-bold text-white flex items-center gap-1.5" id="guide-title">
-                        <span>💡</span> 행동요령 및 안전수칙
+                        <span>💡</span> 산업안전보건 수칙 및 행동요령
                     </div>
                     <ul id="guide-list" class="space-y-1.5 text-slate-400 leading-relaxed">
                         <li>• 날씨 정보를 불러오는 중입니다. 잠시만 기다려주세요.</li>
@@ -188,8 +201,57 @@
         };
 
         let kmaServiceKey = 'whIV7oO5m%2BRhIy4BFG6USPGsSzS7Zl5Jqi1%2B91H9khC%2FHmifFXLEZpCB6MOy5z4rCLWT7AqP2U%2F9yomgXX166w%3D%3D';
+        
+        // 현재 선택된 계절 모드 ('winter' | 'summer')
+        let currentSeasonMode = 'winter'; 
+        let currentLat = null, currentLng = null, currentPlaceName = "현재 위치 (GPS)";
 
-        window.onload = () => requestLocation();
+        window.onload = () => {
+            // 11월~2월은 겨울철, 7월~9월은 여름철 디폴트 자동 설정
+            const currentMonth = new Date().getMonth() + 1;
+            if (currentMonth >= 7 && currentMonth <= 9) {
+                currentSeasonMode = 'summer';
+            } else if (currentMonth === 11 || currentMonth === 12 || currentMonth === 1 || currentMonth === 2) {
+                currentSeasonMode = 'winter';
+            } else {
+                currentSeasonMode = 'winter'; // 기본 fallback
+            }
+            
+            updateModeUI();
+            requestLocation();
+        };
+
+        // 계절 버튼 클릭 스위치
+        function setSeasonMode(mode) {
+            currentSeasonMode = mode;
+            updateModeUI();
+            if (currentLat !== null && currentLng !== null) {
+                fetchWeatherData(currentLat, currentLng, currentPlaceName);
+            }
+        }
+
+        // 스위치 버튼 UI 업데이트
+        function updateModeUI() {
+            const btnWinter = document.getElementById('btn-mode-winter');
+            const btnSummer = document.getElementById('btn-mode-summer');
+            const logoBg = document.getElementById('app-logo-bg');
+            const logoIcon = document.getElementById('app-logo-icon');
+            const sensibleLabel = document.getElementById('sensible-label');
+
+            if (currentSeasonMode === 'winter') {
+                btnWinter.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 text-cyan-300 bg-cyan-950/80 border border-cyan-800/80 shadow";
+                btnSummer.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 text-slate-400 hover:text-slate-200";
+                logoBg.className = "w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-600 to-blue-600 flex items-center justify-center text-white shadow-md transition-colors";
+                logoIcon.textContent = "❄️";
+                sensibleLabel.textContent = "겨울철 체감온도";
+            } else {
+                btnSummer.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 text-amber-300 bg-amber-950/80 border border-amber-800/80 shadow";
+                btnWinter.className = "px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 text-slate-400 hover:text-slate-200";
+                logoBg.className = "w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-md transition-colors";
+                logoIcon.textContent = "☀️";
+                sensibleLabel.textContent = "여름철 체감온도";
+            }
+        }
 
         function dfs_xy_conv(lat, lng) {
             const RE = 6371.00877, GRID = 5.0, SLAT1 = 30.0, SLAT2 = 60.0, OLON = 126.0, OLAT = 38.0, XO = 43, YO = 136;
@@ -210,16 +272,26 @@
             return { nx: Math.floor(ra * Math.sin(theta) + XO + 0.5), ny: Math.floor(ro - ra * Math.cos(theta) + YO + 0.5) };
         }
 
+        /**
+         * 산업안전보건법 및 기상청 공식 기준 체감온도 계산 함수
+         */
         function calculateSensibleTemp(temp, humidity, wind) {
-            const month = new Date().getMonth() + 1;
-            if (month >= 5 && month <= 9) { // 여름철 (5~9월)
+            if (currentSeasonMode === 'summer') {
+                // 여름철 체감온도 (습구온도 기반 산출식)
                 const T = temp, RH = humidity;
                 const Tw = T * Math.atan(0.151977 * Math.pow(RH + 8.313659, 0.5)) + Math.atan(T + RH) - Math.atan(RH - 1.676331) + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) - 4.686035;
                 return -0.2442 + 0.55399 * Tw + 0.45535 * T - 0.0022 * Math.pow(Tw, 2) + 0.00278 * Tw * T + 3.0;
-            } else { // 겨울철 등 (10~4월)
-                const T = temp, V = Math.max(wind * 3.6, 0); 
-                if (T <= 10 && V >= 4.8) {
-                    return 13.12 + 0.6215 * T - 11.37 * Math.pow(V, 0.16) + 0.3965 * T * Math.pow(V, 0.16);
+            } else {
+                // 겨울철 체감온도 (산업안전보건/기상청 표준 계산식)
+                // W = 13.12 + 0.6215*T - 11.37*(V^0.16) + 0.3965*T*(V^0.16)
+                // T: 기온(°C), V: 풍속(km/h) -> m/s에 3.6 곱함
+                const T = temp;
+                const V = Math.max(wind * 3.6, 0); 
+                
+                // 산업안전 가이드라인 상 기온 10°C 이하, 풍속 4.8km/h(1.33m/s) 이상 시 공식 적용
+                if (T <= 10.0 && V >= 4.8) {
+                    const vPow = Math.pow(V, 0.16);
+                    return 13.12 + (0.6215 * T) - (11.37 * vPow) + (0.3965 * T * vPow);
                 }
                 return temp;
             }
@@ -265,6 +337,7 @@
         }
 
         async function fetchWeatherData(lat, lng, name) {
+            currentLat = lat; currentLng = lng; currentPlaceName = name;
             document.getElementById('current-address').innerHTML = `<span class="text-blue-400">📍</span> ${name}`;
             const key = decodeURIComponent(kmaServiceKey);
             
@@ -316,7 +389,7 @@
                 console.error("API 연동 에러:", e);
             }
 
-            // 화면 업데이트
+            // 화면 데이터 업데이트
             document.getElementById('actual-temp-val').textContent = `${weather.temp.toFixed(1)} °C`;
             document.getElementById('humidity-val').textContent = `${Math.round(weather.humidity)} %`;
             document.getElementById('wind-val').textContent = `${weather.wind.toFixed(1)} m/s`;
@@ -342,7 +415,99 @@
                 warning: document.getElementById('bar-warning'),
                 danger: document.getElementById('bar-danger')
             };
-            
+
+            // 계절에 맞춘 바 라벨 업데이트 및 수칙 계산
+            let color = "#10b981", text = "안전", pct = 25, activeKey = 'safe';
+            let guideTitle = "";
+            let guideItems = [];
+
+            if (currentSeasonMode === 'winter') {
+                // 겨울철 산안법/한파 위험 기준
+                bars.safe.textContent = "안전 (>-3°C)";
+                bars.caution.textContent = "주의 (-3°C~)";
+                bars.warning.textContent = "경고 (-10°C~)";
+                bars.danger.textContent = "위험 (-15°C~)";
+
+                const st = weather.sensible;
+
+                if (st <= -15.0) {
+                    color = "#3b82f6"; text = "위험"; pct = 100; activeKey = 'danger';
+                    guideTitle = "🚨 위험 단계 (한파 경보 및 동상 고위험)";
+                    guideItems = [
+                        "• 옥외 작업을 최대로 자제하고, 매 시간 15분 이상 따뜻한 쉼터에서 휴식을 취하세요.",
+                        "• 방한모, 목도리, 방한장갑, 방한화 등 3대 기본 방한장구를 반드시 착용하세요.",
+                        "• 저체온증, 동상 등 한파질환 발생 여부를 상호 점검하고 응급 상황 발생 시 즉시 119에 신고하세요."
+                    ];
+                } else if (st <= -10.0) {
+                    color = "#06b6d4"; text = "경고"; pct = 75; activeKey = 'warning';
+                    guideTitle = "⚠️ 경고 단계 (한파 주의 필요)";
+                    guideItems = [
+                        "• 장시간 야외 노출 시 체온 저하 위험이 높으니 주기적으로 따뜻한 장소에서 휴식을 취하세요.",
+                        "• 따뜻한 물과 음료를 자주 섭취하여 체온 및 혈액순환을 유지하세요.",
+                        "• 차가운 금속 및 노면 접촉 시 방한 장갑을 착용하여 접촉성 동상을 예방하세요."
+                    ];
+                } else if (st <= -3.0) {
+                    color = "#38bdf8"; text = "주의"; pct = 50; activeKey = 'caution';
+                    guideTitle = "⚠️ 주의 단계 (관심 필요)";
+                    guideItems = [
+                        "• 바람이 강할수록 체감온도가 급격히 낮아지므로 얇은 옷을 여러 겹 겹쳐 입으세요.",
+                        "• 도로 실시간 빙판길(블랙아이스) 발생에 주의하여 안전거리를 확보하고 서행하세요.",
+                        "• 틈틈이 보온 장소에서 휴식을 취하며 체온 변화를 관찰하세요."
+                    ];
+                } else {
+                    color = "#10b981"; text = "안전"; pct = 25; activeKey = 'safe';
+                    guideTitle = "✅ 안전 단계 (양호한 양상)";
+                    guideItems = [
+                        "• 쾌적한 작업 환경입니다. 규칙적인 수분 섭취와 스트레칭을 실시하세요.",
+                        "• 갑작스러운 기온 변화에 대비해 방한용품을 사전 점검하세요.",
+                        "• 현장 안전수칙을 준수하며 평소와 같이 안전운전 및 업무를 진행하세요."
+                    ];
+                }
+            } else {
+                // 여름철 온열질환 위험 기준
+                bars.safe.textContent = "안전 (<31°C)";
+                bars.caution.textContent = "주의 (31°C~)";
+                bars.warning.textContent = "경고 (33°C~)";
+                bars.danger.textContent = "위험 (35°C~)";
+
+                const st = weather.sensible;
+
+                if (st >= 35.0) {
+                    color = "#f43f5e"; text = "위험"; pct = 100; activeKey = 'danger';
+                    guideTitle = "🚨 위험 단계 (온열질환 매우 위험)";
+                    guideItems = [
+                        "• 시원한 물을 자주 마시고, 가장 더운 시간대(14~17시) 야외 활동을 즉시 중단하세요.",
+                        "• 차량 탑승 시 내부 고온으로 인한 화상 및 질환을 막기 위해 철저히 환기 후 에어컨을 가동하세요.",
+                        "• 어지러움, 두통 등 온열질환 초기 증상 발생 즉시 그늘진 시원한 곳에서 휴식을 취하세요."
+                    ];
+                } else if (st >= 33.0) {
+                    color = "#f59e0b"; text = "경고"; pct = 75; activeKey = 'warning';
+                    guideTitle = "⚠️ 경고 단계 (온열질환 주의 필요)";
+                    guideItems = [
+                        "• 격렬한 야외 업무 및 운동을 자제하고, 그늘에서 자주 휴식을 취하세요.",
+                        "• 운전 중 장시간 직사광선 노출을 피하고 차량 실내 온도를 적정하게 유지하세요.",
+                        "• 땀을 많이 흘렸을 경우 전해질(이온음료 등)과 수분을 함께 보충해주세요."
+                    ];
+                } else if (st >= 31.0) {
+                    color = "#eab308"; text = "주의"; pct = 50; activeKey = 'caution';
+                    guideTitle = "⚠️ 주의 단계 (관심 필요)";
+                    guideItems = [
+                        "• 야외 활동 시 자외선 차단제(선크림)를 바르고 모자를 착용하세요.",
+                        "• 평소보다 수분 섭취 빈도를 늘리고 무리한 신체 활동을 피하세요.",
+                        "• 장시간 차량 주행 시 졸음운전 예방을 위해 창문을 열어 자주 환기하세요."
+                    ];
+                } else {
+                    color = "#10b981"; text = "안전"; pct = 25; activeKey = 'safe';
+                    guideTitle = "✅ 안전 단계 (양호한 양상)";
+                    guideItems = [
+                        "• 갈증을 느끼기 전 규칙적으로 수분을 충분히 섭취하세요.",
+                        "• 야외 활동 및 주행 전 차량 안전 점검을 가볍게 실시하세요.",
+                        "• 쾌적한 상태이므로 평소와 같이 안전운전 및 업무를 진행하세요."
+                    ];
+                }
+            }
+
+            // 바 스타일 초기화
             Object.values(bars).forEach(b => {
                 b.className = "py-1.5 rounded-lg bg-slate-900/60 text-slate-500 border border-slate-800 transition-all font-semibold";
                 b.style.backgroundColor = "";
@@ -350,40 +515,7 @@
                 b.style.color = "";
             });
 
-            let color = "#10b981", text = "안전", pct = 25, activeKey = 'safe';
-            let guideTitle = "✅ 안전 단계 (일상적인 활동 가능)";
-            let guideItems = [
-                "• 갈증을 느끼기 전 규칙적으로 수분을 충분히 섭취하세요.",
-                "• 야외 활동 및 주행 전 차량 안전 점검을 가볍게 실시하세요.",
-                "• 쾌적한 상태이므로 평소와 같이 안전운전 및 업무를 진행하세요."
-            ];
-
-            if (weather.sensible >= 35) {
-                color = "#f43f5e"; text = "위험"; pct = 100; activeKey = 'danger';
-                guideTitle = "🚨 위험 단계 (온열질환 매우 위험)";
-                guideItems = [
-                    "• 시원한 물을 자주 마시고, 가장 더운 오후 시간대(14~17시) 야외 활동을 즉시 중단하세요.",
-                    "• 차량 탑승 시 내부 고온으로 인한 화상 및 질환을 막기 위해 철저히 환기 후 에어컨을 가동하세요.",
-                    "• 어지러움, 두통 등 온열질환 초기 증상 발생 즉시 그늘진 시원한 곳에서 휴식을 취하세요."
-                ];
-            } else if (weather.sensible >= 33) {
-                color = "#f59e0b"; text = "경고"; pct = 75; activeKey = 'warning';
-                guideTitle = "⚠️ 경고 단계 (온열질환 주의 필요)";
-                guideItems = [
-                    "• 격렬한 야외 업무 및 운동을 자제하고, 그늘에서 자주 휴식을 취하세요.",
-                    "• 운전 중 장시간 직사광선 노출을 피하고 차량 실내 온도를 적정하게 유지하세요.",
-                    "• 땀을 많이 흘렸을 경우 전해질(이온음료 등)과 수분을 함께 보충해주세요."
-                ];
-            } else if (weather.sensible >= 31) {
-                color = "#3b82f6"; text = "주의"; pct = 50; activeKey = 'caution';
-                guideTitle = "⚠️ 주의 단계 (관심 필요)";
-                guideItems = [
-                    "• 야외 활동 시 자외선 차단제(선크림)를 바르고 모자를 착용하세요.",
-                    "• 평소보다 수분 섭취 빈도를 늘리고 무리한 신체 활동을 피하세요.",
-                    "• 장시간 차량 주행 시 졸음운전 예방을 위해 창문을 열어 자주 환기하세요."
-                ];
-            }
-
+            // 활성화된 단계 강조
             const activeBar = bars[activeKey];
             activeBar.className = "py-1.5 rounded-lg border transition-all font-extrabold";
             activeBar.style.backgroundColor = color + '22';
