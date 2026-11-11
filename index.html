@@ -28,16 +28,6 @@
                 <h1 class="text-lg md:text-xl font-bold text-white">KoRoad 안전 알림판</h1>
             </div>
             <div class="flex items-center gap-2">
-                <!-- 겨울/여름 모드 스위치 버튼 추가 -->
-                <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center gap-1">
-                    <button id="btn-mode-winter" onclick="setSeasonMode('winter')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 text-sky-300 bg-sky-950/80 border border-sky-800/80">
-                        ❄️ 겨울
-                    </button>
-                    <button id="btn-mode-summer" onclick="setSeasonMode('summer')" class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 text-slate-400 hover:text-slate-200">
-                        ☀️ 여름
-                    </button>
-                </div>
-
                 <button onclick="requestLocation()" title="현재 위치 새로고침" class="p-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
@@ -93,7 +83,7 @@
                             <circle id="dial-circle-fill" cx="50" cy="50" r="42" stroke="currentColor" stroke-width="7" class="transition-all duration-1000 ease-out" fill="transparent" stroke-dasharray="263.89" stroke-dashoffset="263.89" stroke-linecap="round" />
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                            <span id="sensible-label" class="text-[10px] font-semibold text-slate-400 tracking-widest">체감온도</span>
+                            <span class="text-[10px] font-semibold text-slate-400 tracking-widest">체감온도</span>
                             <div class="flex items-baseline gap-0.5">
                                 <span id="sensible-temp-val" class="text-3xl font-black">--</span>
                                 <span class="text-lg font-bold text-slate-400">°C</span>
@@ -131,5 +121,294 @@
             <div class="space-y-3 pt-4 border-t border-slate-800/80">
                 <!-- 단계 구분 바 -->
                 <div class="grid grid-cols-4 gap-1 text-center text-[11px] font-bold">
-                    <div id="bar-safe" class="py-1.5 rounded-lg transition-all">안전</div>
-                    <div id="bar-caution
+                    <div id="bar-safe" class="py-1.5 rounded-lg transition-all">안전 (<31°C)</div>
+                    <div id="bar-caution" class="py-1.5 rounded-lg transition-all">주의 (31°C~)</div>
+                    <div id="bar-warning" class="py-1.5 rounded-lg transition-all">경고 (33°C~)</div>
+                    <div id="bar-danger" class="py-1.5 rounded-lg transition-all">위험 (35°C~)</div>
+                </div>
+                <!-- 게이지 막대 -->
+                <div class="w-full h-3 bg-slate-950 rounded-full border border-slate-800 overflow-hidden relative">
+                    <div id="gauge-bar-fill" class="h-full bg-emerald-500 transition-all duration-700" style="width: 0%;"></div>
+                </div>
+                <!-- 행동요령 안내박스 -->
+                <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3.5 text-xs text-slate-300 space-y-2">
+                    <div class="font-bold text-white flex items-center gap-1.5" id="guide-title">
+                        <span>💡</span> 행동요령 및 안전수칙
+                    </div>
+                    <ul id="guide-list" class="space-y-1.5 text-slate-400 leading-relaxed">
+                        <li>• 날씨 정보를 불러오는 중입니다. 잠시만 기다려주세요.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Proj4js TM 좌표계 정의 (에어코리아 중부원점)
+        proj4.defs("EPSG:2097", "+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=500000 +ellps=bessel +units=m +no_defs +towgs84=-115.80,474.99,674.11,1.16,-2.31,-1.63,6.43");
+
+        const centerData = {
+            seoul_gyeonggi_incheon: [
+                { name: "강남 운전면허시험장", lat: 37.5082, lng: 127.0673 },
+                { name: "도봉 운전면허시험장", lat: 37.6533, lng: 127.0583 },
+                { name: "강서 운전면허시험장", lat: 37.5509, lng: 126.8118 },
+                { name: "서부 운전면허시험장", lat: 37.5710, lng: 126.8920 },
+                { name: "인천 운전면허시험장", lat: 37.4357, lng: 126.6912 },
+                { name: "용인 운전면허시험장", lat: 37.2635, lng: 127.1243 },
+                { name: "안산 운전면허시험장", lat: 37.3398, lng: 126.8341 },
+                { name: "의정부 운전면허시험장", lat: 37.7533, lng: 127.0782 }
+            ],
+            busan_gyeongsang: [
+                { name: "부산남부 운전면허시험장", lat: 35.1325, lng: 129.1072 },
+                { name: "부산북부 운전면허시험장", lat: 35.1873, lng: 128.9812 },
+                { name: "울산 운전면허시험장", lat: 35.5831, lng: 129.2815 },
+                { name: "마산 운전면허시험장", lat: 35.2281, lng: 128.5810 },
+                { name: "대구 운전면허시험장", lat: 35.8421, lng: 128.5532 },
+                { name: "포항 운전면허시험장", lat: 36.0192, lng: 129.3451 },
+                { name: "문경 운전면허시험장", lat: 36.5821, lng: 128.1923 }
+            ],
+            daejeon_chungcheong: [
+                { name: "대전 운전면허시험장", lat: 36.3120, lng: 127.4601 },
+                { name: "청주 운전면허시험장", lat: 36.5612, lng: 127.5582 },
+                { name: "충주 운전면허시험장", lat: 36.9876, lng: 127.9123 },
+                { name: "예산 운전면허시험장", lat: 36.6781, lng: 126.8452 }
+            ],
+            gwangju_jeolla: [
+                { name: "전남 운전면허시험장", lat: 35.0192, lng: 126.7123 },
+                { name: "광양 운전면허시험장", lat: 34.9405, lng: 127.6958 },
+                { name: "전북 운전면허시험장", lat: 35.8312, lng: 127.0812 }
+            ],
+            gangwon_jeju: [
+                { name: "춘천 운전면허시험장", lat: 37.8812, lng: 127.7312 },
+                { name: "강릉 운전면허시험장", lat: 37.7512, lng: 128.8712 },
+                { name: "원주 운전면허시험장", lat: 37.3412, lng: 127.9212 },
+                { name: "태백 운전면허시험장", lat: 37.1705, lng: 128.9850 },
+                { name: "제주 운전면허시험장", lat: 33.4512, lng: 126.5712 }
+            ]
+        };
+
+        let kmaServiceKey = 'whIV7oO5m%2BRhIy4BFG6USPGsSzS7Zl5Jqi1%2B91H9khC%2FHmifFXLEZpCB6MOy5z4rCLWT7AqP2U%2F9yomgXX166w%3D%3D';
+
+        window.onload = () => requestLocation();
+
+        function dfs_xy_conv(lat, lng) {
+            const RE = 6371.00877, GRID = 5.0, SLAT1 = 30.0, SLAT2 = 60.0, OLON = 126.0, OLAT = 38.0, XO = 43, YO = 136;
+            const DEGRAD = Math.PI / 180.0, re = RE / GRID;
+            let sn = Math.tan(Math.PI * 0.25 + SLAT2 * DEGRAD * 0.5) / Math.tan(Math.PI * 0.25 + SLAT1 * DEGRAD * 0.5);
+            sn = Math.log(Math.cos(SLAT1 * DEGRAD) / Math.cos(SLAT2 * DEGRAD)) / Math.log(sn);
+            let sf = Math.tan(Math.PI * 0.25 + SLAT1 * DEGRAD * 0.5);
+            sf = Math.pow(sf, sn) * Math.cos(SLAT1 * DEGRAD) / sn;
+            let ro = Math.tan(Math.PI * 0.25 + OLAT * DEGRAD * 0.5);
+            ro = re * sf / Math.pow(ro, sn);
+            
+            let ra = Math.tan(Math.PI * 0.25 + (lat) * DEGRAD * 0.5);
+            ra = re * sf / Math.pow(ra, sn);
+            let theta = lng * DEGRAD - OLON * DEGRAD;
+            if (theta > Math.PI) theta -= 2.0 * Math.PI;
+            if (theta < -Math.PI) theta += 2.0 * Math.PI;
+            theta *= sn;
+            return { nx: Math.floor(ra * Math.sin(theta) + XO + 0.5), ny: Math.floor(ro - ra * Math.cos(theta) + YO + 0.5) };
+        }
+
+        function calculateSensibleTemp(temp, humidity, wind) {
+            const month = new Date().getMonth() + 1;
+            if (month >= 5 && month <= 9) { // 여름철 (5~9월)
+                const T = temp, RH = humidity;
+                const Tw = T * Math.atan(0.151977 * Math.pow(RH + 8.313659, 0.5)) + Math.atan(T + RH) - Math.atan(RH - 1.676331) + 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH) - 4.686035;
+                return -0.2442 + 0.55399 * Tw + 0.45535 * T - 0.0022 * Math.pow(Tw, 2) + 0.00278 * Tw * T + 3.0;
+            } else { // 겨울철 등 (10~4월)
+                const T = temp, V = Math.max(wind * 3.6, 0); 
+                if (T <= 10 && V >= 4.8) {
+                    return 13.12 + 0.6215 * T - 11.37 * Math.pow(V, 0.16) + 0.3965 * T * Math.pow(V, 0.16);
+                }
+                return temp;
+            }
+        }
+
+        // 미세먼지(PM10) 등급 판정 함수
+        function getPm10Grade(val) {
+            if (val === '-' || isNaN(val)) return { text: "정보없음", color: "bg-slate-800 text-slate-400" };
+            if (val <= 30) return { text: "좋음", color: "bg-blue-500/20 text-blue-400 border border-blue-500/30" };
+            if (val <= 80) return { text: "보통", color: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" };
+            if (val <= 150) return { text: "나쁨", color: "bg-amber-500/20 text-amber-400 border border-amber-500/30" };
+            return { text: "매우나쁨", color: "bg-rose-500/20 text-rose-400 border border-rose-500/30" };
+        }
+
+        // 초미세먼지(PM2.5) 등급 판정 함수
+        function getPm25Grade(val) {
+            if (val === '-' || isNaN(val)) return { text: "정보없음", color: "bg-slate-800 text-slate-400" };
+            if (val <= 15) return { text: "좋음", color: "bg-blue-500/20 text-blue-400 border border-blue-500/30" };
+            if (val <= 35) return { text: "보통", color: "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" };
+            if (val <= 75) return { text: "나쁨", color: "bg-amber-500/20 text-amber-400 border border-amber-500/30" };
+            return { text: "매우나쁨", color: "bg-rose-500/20 text-rose-400 border border-rose-500/30" };
+        }
+
+        function requestLocation() {
+            navigator.geolocation.getCurrentPosition(
+                (pos) => fetchWeatherData(pos.coords.latitude, pos.coords.longitude, "현재 위치 (GPS)"),
+                () => document.getElementById('current-address').textContent = "위치 권한을 허용해주세요."
+            );
+        }
+
+        function onZoneChange(zone) {
+            const select = document.getElementById('center-select');
+            select.innerHTML = '<option value="">-- [2단계] 시험장 선택 --</option>';
+            if (centerData[zone]) {
+                centerData[zone].forEach((c, i) => select.innerHTML += `<option value="${zone}:${i}">${c.name}</option>`);
+            }
+        }
+
+        function onCenterSelect(val) {
+            if (!val) return;
+            const [z, i] = val.split(':');
+            fetchWeatherData(centerData[z][i].lat, centerData[z][i].lng, centerData[z][i].name);
+        }
+
+        async function fetchWeatherData(lat, lng, name) {
+            document.getElementById('current-address').innerHTML = `<span class="text-blue-400">📍</span> ${name}`;
+            const key = decodeURIComponent(kmaServiceKey);
+            
+            let weather = { temp: 0, humidity: 0, wind: 0, sensible: 0 };
+            let air = { pm10: '-', pm25: '-', station: '탐색 중' };
+
+            try {
+                const grid = dfs_xy_conv(lat, lng);
+                const now = new Date();
+                let h = now.getHours(), m = now.getMinutes();
+                if (m < 40) h--; 
+                if (h < 0) { h = 23; now.setDate(now.getDate() - 1); }
+                
+                const baseDate = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}`;
+                const baseTime = `${String(h).padStart(2,'0')}00`;
+                
+                const ncstUrl = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst?serviceKey=${encodeURIComponent(key)}&pageNo=1&numOfRows=10&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${grid.nx}&ny=${grid.ny}`;
+                const res = await fetch(ncstUrl);
+                const data = await res.json();
+                
+                if (data?.response?.body?.items?.item) {
+                    data.response.body.items.item.forEach(i => {
+                        if (i.category === 'T1H') weather.temp = parseFloat(i.obsrValue);
+                        if (i.category === 'REH') weather.humidity = parseFloat(i.obsrValue);
+                        if (i.category === 'WSD') weather.wind = parseFloat(i.obsrValue);
+                    });
+                }
+                
+                weather.sensible = calculateSensibleTemp(weather.temp, weather.humidity, weather.wind);
+                
+                const tmCoords = proj4("EPSG:4326", "EPSG:2097", [lng, lat]);
+                const stUrl = `https://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList?serviceKey=${encodeURIComponent(key)}&returnType=json&tmX=${tmCoords[0]}&tmY=${tmCoords[1]}`;
+                const stRes = await fetch(stUrl);
+                const stData = await stRes.json();
+                
+                if (stData?.response?.body?.items?.length > 0) {
+                    air.station = stData.response.body.items[0].stationName;
+                    const airUrl = `https://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty?serviceKey=${encodeURIComponent(key)}&returnType=json&numOfRows=1&pageNo=1&stationName=${encodeURIComponent(air.station)}&dataTerm=DAILY&ver=1.3`;
+                    const airRes = await fetch(airUrl);
+                    const aData = await airRes.json();
+                    
+                    const item = aData?.response?.body?.items?.[0];
+                    if (item) {
+                        air.pm10 = item.pm10Value && item.pm10Value !== '-' ? item.pm10Value : '-';
+                        air.pm25 = item.pm25Value && item.pm25Value !== '-' ? item.pm25Value : '-';
+                    }
+                }
+            } catch(e) {
+                console.error("API 연동 에러:", e);
+            }
+
+            // 화면 업데이트
+            document.getElementById('actual-temp-val').textContent = `${weather.temp.toFixed(1)} °C`;
+            document.getElementById('humidity-val').textContent = `${Math.round(weather.humidity)} %`;
+            document.getElementById('wind-val').textContent = `${weather.wind.toFixed(1)} m/s`;
+            
+            document.getElementById('sensible-temp-val').textContent = weather.sensible.toFixed(1);
+            document.getElementById('station-name-label').textContent = `(${air.station})`;
+            
+            document.getElementById('pm10-val').textContent = `${air.pm10} ㎍/㎥`;
+            const pm10Info = getPm10Grade(parseFloat(air.pm10));
+            const pm10Badge = document.getElementById('pm10-badge');
+            pm10Badge.textContent = pm10Info.text;
+            pm10Badge.className = `px-2 py-0.5 rounded text-[10px] font-bold ${pm10Info.color}`;
+
+            document.getElementById('pm25-val').textContent = `${air.pm25} ㎍/㎥`;
+            const pm25Info = getPm25Grade(parseFloat(air.pm25));
+            const pm25Badge = document.getElementById('pm25-badge');
+            pm25Badge.textContent = pm25Info.text;
+            pm25Badge.className = `px-2 py-0.5 rounded text-[10px] font-bold ${pm25Info.color}`;
+
+            const bars = {
+                safe: document.getElementById('bar-safe'),
+                caution: document.getElementById('bar-caution'),
+                warning: document.getElementById('bar-warning'),
+                danger: document.getElementById('bar-danger')
+            };
+            
+            Object.values(bars).forEach(b => {
+                b.className = "py-1.5 rounded-lg bg-slate-900/60 text-slate-500 border border-slate-800 transition-all font-semibold";
+                b.style.backgroundColor = "";
+                b.style.borderColor = "";
+                b.style.color = "";
+            });
+
+            let color = "#10b981", text = "안전", pct = 25, activeKey = 'safe';
+            let guideTitle = "✅ 안전 단계 (일상적인 활동 가능)";
+            let guideItems = [
+                "• 갈증을 느끼기 전 규칙적으로 수분을 충분히 섭취하세요.",
+                "• 야외 활동 및 주행 전 차량 안전 점검을 가볍게 실시하세요.",
+                "• 쾌적한 상태이므로 평소와 같이 안전운전 및 업무를 진행하세요."
+            ];
+
+            if (weather.sensible >= 35) {
+                color = "#f43f5e"; text = "위험"; pct = 100; activeKey = 'danger';
+                guideTitle = "🚨 위험 단계 (온열질환 매우 위험)";
+                guideItems = [
+                    "• 시원한 물을 자주 마시고, 가장 더운 오후 시간대(14~17시) 야외 활동을 즉시 중단하세요.",
+                    "• 차량 탑승 시 내부 고온으로 인한 화상 및 질환을 막기 위해 철저히 환기 후 에어컨을 가동하세요.",
+                    "• 어지러움, 두통 등 온열질환 초기 증상 발생 즉시 그늘진 시원한 곳에서 휴식을 취하세요."
+                ];
+            } else if (weather.sensible >= 33) {
+                color = "#f59e0b"; text = "경고"; pct = 75; activeKey = 'warning';
+                guideTitle = "⚠️ 경고 단계 (온열질환 주의 필요)";
+                guideItems = [
+                    "• 격렬한 야외 업무 및 운동을 자제하고, 그늘에서 자주 휴식을 취하세요.",
+                    "• 운전 중 장시간 직사광선 노출을 피하고 차량 실내 온도를 적정하게 유지하세요.",
+                    "• 땀을 많이 흘렸을 경우 전해질(이온음료 등)과 수분을 함께 보충해주세요."
+                ];
+            } else if (weather.sensible >= 31) {
+                color = "#3b82f6"; text = "주의"; pct = 50; activeKey = 'caution';
+                guideTitle = "⚠️ 주의 단계 (관심 필요)";
+                guideItems = [
+                    "• 야외 활동 시 자외선 차단제(선크림)를 바르고 모자를 착용하세요.",
+                    "• 평소보다 수분 섭취 빈도를 늘리고 무리한 신체 활동을 피하세요.",
+                    "• 장시간 차량 주행 시 졸음운전 예방을 위해 창문을 열어 자주 환기하세요."
+                ];
+            }
+
+            const activeBar = bars[activeKey];
+            activeBar.className = "py-1.5 rounded-lg border transition-all font-extrabold";
+            activeBar.style.backgroundColor = color + '22';
+            activeBar.style.borderColor = color;
+            activeBar.style.color = color;
+
+            document.getElementById('sensible-temp-val').style.color = color;
+            document.getElementById('status-badge-text').textContent = text;
+            document.getElementById('status-badge').style.borderColor = color;
+            document.getElementById('status-badge').style.color = color;
+            
+            document.getElementById('dial-circle-fill').style.stroke = color;
+            document.getElementById('dial-circle-fill').style.strokeDashoffset = 263.89 - (pct / 100) * 263.89;
+            document.getElementById('gauge-bar-fill').style.backgroundColor = color;
+            document.getElementById('gauge-bar-fill').style.width = `${pct}%`;
+
+            document.getElementById('guide-title').innerHTML = `<span>💡</span> ${guideTitle}`;
+            const listEl = document.getElementById('guide-list');
+            listEl.innerHTML = '';
+            guideItems.forEach(item => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                listEl.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
